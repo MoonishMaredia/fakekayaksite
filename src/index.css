@@ -9,3 +9,11 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.header {
+  display: flex;
+  width: 100%;
+  background-color: #FF690F;
+  color: white;
+  min-height: 60px;
+}
