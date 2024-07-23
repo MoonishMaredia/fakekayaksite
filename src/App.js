@@ -1,5 +1,7 @@
 import logo from './logo.svg';
-import './App.css';
+import {Header} from './components/Header'
+import {InputLayout} from './pages/InputLayout'
+import {ResultLayout} from './pages/ResultLayout'
 
 function App() {
   return (
