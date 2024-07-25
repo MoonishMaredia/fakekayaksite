@@ -1,12 +1,10 @@
 import logo from './logo.svg';
-import HeaderLayout from './components/HeaderLayout'
-import {InputLayout} from './pages/InputLayout'
-import {ResultLayout} from './pages/ResultLayout'
+import InputLayout from './pages/InputLayout.jsx'
 
 function App() {
   return (
     <div className="App">
-      <HeaderLayout/>
+      <InputLayout/>
     </div>
   );
 }
