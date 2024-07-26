@@ -48,12 +48,40 @@ const ChatModal = ({
     return objStr
   }
 
+  function runSetFunctions(setter, arg) {
+    if(setter==="setTripType") {
+      setTripType(arg)
+    } else if (setter==="setFlyingFrom") {
+      setFlyingFrom(arg)
+    } else if(setter==="setFlyingTo") {
+      setFlyingTo(arg)
+    } else if(setter==="setStartDate") {
+      setStartDate(arg)
+    } else if(setter==="setReturnDate") {
+      setReturnDate(arg)
+    } else if(setter==="setAdults") {
+      setAdults(arg)
+    } else if(setter==="setChildren") {
+      setChildren(arg)
+    } else if(setter==="setCarryOnBags") {
+      setCarryOnBags(arg)
+    } else if(setter==="setCheckedBags") {
+      setCheckedBags(arg)
+    } else {
+      console.log("There was an error!")
+    }
+  }
+
   function commandCenter(codeResponse) {
 
     const modifiedStr = codeResponse.replace(/(\w+)/, '"$1"');
     // Parse the modified string to get the array
     const array = JSON.parse(modifiedStr);
-    console.log(array);
+    while(array.length > 0){
+      const arg = array.pop()
+      const setter = array.pop()
+      runSetFunction(setter, arg)
+    }
 
   }
 
@@ -64,6 +92,7 @@ const ChatModal = ({
       const inputObjString = getCompletedObject()
       console.log("Send:", userMessage, prevAIMessage, inputObjString)
       const [codeResponse, userResponse] = await makeGPTRequests(userMessage, prevAIMessage, inputObjString)
+      commandCenter(codeResponse)
       console.log("Return:", codeResponse, userResponse)
       const htmlContent = marked(userResponse); // Convert Markdown to HTML
       setMessages((prev) => [{ sender: 'ai', text: htmlContent }, ...prev]);
