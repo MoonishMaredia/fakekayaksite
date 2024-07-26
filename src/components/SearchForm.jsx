@@ -17,58 +17,78 @@ import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 import FlightLandIcon from '@mui/icons-material/FlightLand';
 import EventIcon from '@mui/icons-material/Event';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
+import LuggageIcon from '@mui/icons-material/Luggage';
 
-const SearchForm = () => {
-  const [tripType, setTripType] = useState('Round-trip');
-  const [bags, setBags] = useState('0 bags');
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [adults, setAdults] = useState(1);
-  const [children, setChildren] = useState(0);
+const SearchForm = ({
+    tripType, setTripType,
+    flyingFrom, setFlyingFrom,
+    flyingTo, setFlyingTo,
+    startDate, setStartDate,
+    returnDate, setReturnDate,
+    adults, setAdults,
+    children, setChildren,
+    carryOnBags, setCarryOnBags,
+    checkedBags, setCheckedBags,
+  }) => {
+
+  const [passengerAnchorEl, setPassengerAnchorEl] = useState(null);
+  const [bagAnchorEl, setBagAnchorEl] = useState(null);
 
   const handlePassengerClick = (event) => {
-    setAnchorEl(event.currentTarget);
+    setPassengerAnchorEl(event.currentTarget);
   };
 
   const handlePassengerClose = () => {
-    setAnchorEl(null);
+    setPassengerAnchorEl(null);
   };
 
-  const open = Boolean(anchorEl);
+  const handleBagClick = (event) => {
+    setBagAnchorEl(event.currentTarget);
+  };
+
+  const handleBagClose = () => {
+    setBagAnchorEl(null);
+  };
+
+  const passengerOpen = Boolean(passengerAnchorEl);
+  const bagOpen = Boolean(bagAnchorEl);
+  const totalBags = carryOnBags + checkedBags;
 
   return (
     <>
-      <Typography variant="h4" component="h1" sx={{textAlign:'center'}}gutterBottom>
+      <Typography variant="h4" component="h1" sx={{ textAlign: 'center' }} gutterBottom>
         Search flights using AI assistant
       </Typography>
-      <Box sx={{ mb: 2, mt:6}}>
+      <Box sx={{ mb: 2, mt: 6, display: 'flex', alignItems: 'center' }}>
         <Select
           value={tripType}
           onChange={(e) => setTripType(e.target.value)}
-          displayEmpty
+          display="Round-trip"
           variant="outlined"
-          sx={{ mr: 1 }}
+          sx={{ mr: 1, width: '50%' }}
         >
           <MenuItem value="Round-trip">Round-trip</MenuItem>
           <MenuItem value="One-way">One-way</MenuItem>
         </Select>
-        <Select
-          value={bags}
-          onChange={(e) => setBags(e.target.value)}
-          displayEmpty
+        <TextField
+          fullWidth
           variant="outlined"
-        >
-          <MenuItem value="0 bags">0 bags</MenuItem>
-          <MenuItem value="1 bag">1 bag</MenuItem>
-          <MenuItem value="2 bags">2 bags</MenuItem>
-        </Select>
+          value={`${totalBags} bag${totalBags !== 1 ? 's' : ''}`}
+          InputProps={{
+            readOnly: true,
+            startAdornment: <LuggageIcon sx={{ mr: 1 }} />,
+          }}
+          onClick={handleBagClick}
+          sx={{ width: '50%' }}
+        />
       </Box>
       <Box sx={{ mb: 2 }}>
         <TextField
           fullWidth
+          value={flyingFrom}
+          onChange={(e) => setFlyingFrom(e.target.value)}
           variant="outlined"
-          placeholder="Houston, TX - George Bush Intcntl (IAH)"
+          placeholder="Enter US airport flying from ..."
           InputProps={{
             startAdornment: <FlightTakeoffIcon sx={{ mr: 1 }} />,
           }}
@@ -76,8 +96,10 @@ const SearchForm = () => {
         />
         <TextField
           fullWidth
+          value={flyingTo}
+          onChange={(e) => setFlyingTo(e.target.value)}
           variant="outlined"
-          placeholder="Santa Ana, CA - J. Wayne/Orange Cnty ..."
+          placeholder="Enter US airport flying to ..."
           InputProps={{
             startAdornment: <FlightLandIcon sx={{ mr: 1 }} />,
           }}
@@ -89,7 +111,7 @@ const SearchForm = () => {
           onChange={(date) => setStartDate(date)}
           selectsStart
           startDate={startDate}
-          endDate={endDate}
+          endDate={returnDate}
           placeholderText="Start Date"
           customInput={
             <TextField
@@ -103,11 +125,11 @@ const SearchForm = () => {
         />
         {tripType === 'Round-trip' && (
           <DatePicker
-            selected={endDate}
-            onChange={(date) => setEndDate(date)}
+            selected={returnDate}
+            onChange={(date) => setReturnDate(date)}
             selectsEnd
-            startDate={startDate}
-            endDate={endDate}
+            startDate={returnDate}
+            endDate={returnDate}
             minDate={startDate}
             placeholderText="End Date"
             customInput={
@@ -134,8 +156,8 @@ const SearchForm = () => {
           onClick={handlePassengerClick}
         />
         <Popover
-          open={open}
-          anchorEl={anchorEl}
+          open={passengerOpen}
+          anchorEl={passengerAnchorEl}
           onClose={handlePassengerClose}
           anchorOrigin={{
             vertical: 'bottom',
@@ -158,14 +180,41 @@ const SearchForm = () => {
           </Box>
         </Popover>
       </Box>
-      <Box sx={{ mb: 2 }}>
+      <Popover
+        open={bagOpen}
+        anchorEl={bagAnchorEl}
+        onClose={handleBagClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
+      >
+        <Box sx={{ p: 2 }}>
+          <Typography variant="subtitle1" sx={{ mb: 1 }}>Baggage per passenger</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+            <LuggageIcon />
+            <Typography sx={{ mx: 2 }}>Carry-on bag</Typography>
+            <IconButton onClick={() => setCarryOnBags(Math.max(0, carryOnBags - 1))}>-</IconButton>
+            <Typography sx={{ mx: 2 }}>{carryOnBags}</Typography>
+            <IconButton onClick={() => setCarryOnBags(Math.min(1, carryOnBags + 1))}>+</IconButton>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <LuggageIcon />
+            <Typography sx={{ mx: 2 }}>Checked bag</Typography>
+            <IconButton onClick={() => setCheckedBags(Math.max(0, checkedBags - 1))}>-</IconButton>
+            <Typography sx={{ mx: 2 }}>{checkedBags}</Typography>
+            <IconButton onClick={() => setCheckedBags(Math.min(5, checkedBags + 1))}>+</IconButton>
+          </Box>
+        </Box>
+      </Popover>
+      {/* <Box sx={{ mb: 2 }}>
         <FormControlLabel
           control={<Switch />}
           label="Nonstop only"
           labelPlacement="start"
           sx={{ ml: 0, justifyContent: 'space-between', width: '100%' }}
         />
-      </Box>
+      </Box> */}
       <Button
         variant="contained"
         fullWidth

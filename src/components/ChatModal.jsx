@@ -9,28 +9,65 @@ import {
   useTheme,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import { marked } from 'marked'; // Import marked for Markdown parsing
+import { makeGPTRequests } from '../utils/api';
 
-const ChatModal = ({ open, onClose }) => {
+const ChatModal = ({ 
+    open, onClose,
+    tripType, setTripType,
+    flyingFrom, setFlyingFrom,
+    flyingTo, setFlyingTo,
+    startDate, setStartDate,
+    returnDate, setReturnDate,
+    adults, setAdults,
+    children, setChildren,
+    carryOnBags, setCarryOnBags,
+    checkedBags, setCheckedBags 
+  }) => {
+  const [aiMessages, setAIMessages] = useState([])
   const [messages, setMessages] = useState([]);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const messagesEndRef = useRef(null);
-  const openai = new OpenAI({
-    apiKey: '',
-    dangerouslyAllowBrowser: true
-  });
 
-  const sendMessage = async (message) => {
+  function getCompletedObject() {
+    const obj = {
+      "trip_type":tripType,
+      "flying_from":flyingFrom,
+      "flying_to":flyingTo,
+      "start_date":startDate,
+      "return_date":returnDate,
+      "num_adults":adults,
+      "num_kids":children,
+      "num_carryOn":carryOnBags,
+      "num_checked":checkedBags
+    }
+
+    const objStr = JSON.stringify(obj)
+
+    return objStr
+  }
+
+  function commandCenter(codeResponse) {
+
+    const modifiedStr = codeResponse.replace(/(\w+)/, '"$1"');
+    // Parse the modified string to get the array
+    const array = JSON.parse(modifiedStr);
+    console.log(array);
+
+  }
+
+  const sendMessage = async (userMessage) => {
     try {
-      setMessages((prev) => [{ sender: 'user', text: message }, ...prev]);
-      const completion = await openai.chat.completions.create({
-        messages: [
-          { role: "system", content: "You are a helpful assistant." },
-          { role: "user", content: "Give me an interesting example application of the laws of physics applied to everyday phenomena" },
-        ],
-        model: "gpt-4o-mini",
-      });
-      setMessages((prev) => [{ sender: 'ai', text: completion.choices[0].message.content }, ...prev]);
+      setMessages((prev) => [{ sender: 'user', text: userMessage }, ...prev]);
+      const prevAIMessage = aiMessages ? aiMessages[aiMessages.length - 1] : ""
+      const inputObjString = getCompletedObject()
+      console.log("Send:", userMessage, prevAIMessage, inputObjString)
+      const [codeResponse, userResponse] = await makeGPTRequests(userMessage, prevAIMessage, inputObjString)
+      console.log("Return:", codeResponse, userResponse)
+      const htmlContent = marked(userResponse); // Convert Markdown to HTML
+      setMessages((prev) => [{ sender: 'ai', text: htmlContent }, ...prev]);
+      setAIMessages((prev) => [userResponse, ...prev])
     } catch (error) {
       console.error("Error fetching response:", error);
     }
@@ -87,8 +124,9 @@ const ChatModal = ({ open, onClose }) => {
             <Box
               key={index}
               sx={msg.sender === 'user' ? messageStyle.user : messageStyle.ai}
+              dangerouslySetInnerHTML={{ __html: msg.text }} // Render HTML content
             >
-              <Typography>{msg.text}</Typography>
+              {/* <Typography>{msg.text}</Typography> */}
             </Box>
           ))}
           <div ref={messagesEndRef} />
