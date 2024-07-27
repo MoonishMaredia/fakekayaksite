@@ -12,6 +12,8 @@ import {
   Button,
   Popover,
   IconButton,
+  FormControl,
+  InputLabel
 } from '@mui/material';
 import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 import FlightLandIcon from '@mui/icons-material/FlightLand';
@@ -25,8 +27,8 @@ const SearchForm = ({
     flyingTo, setFlyingTo,
     startDate, setStartDate,
     returnDate, setReturnDate,
-    adults, setAdults,
-    children, setChildren,
+    passengers, setPassengers,
+    seatType, setSeatType,
     carryOnBags, setCarryOnBags,
     checkedBags, setCheckedBags,
   }) => {
@@ -154,7 +156,7 @@ const SearchForm = ({
         <TextField
           fullWidth
           variant="outlined"
-          value={`${adults + children} passenger${adults + children > 1 ? 's' : ''}, Economy`}
+          value={`${passengers ? passengers : 0} passenger${passengers > 1 ? 's' : ''}, ${seatType}`}
           InputProps={{
             startAdornment: <PersonOutlineIcon sx={{ mr: 1 }} />,
             readOnly: true,
@@ -168,22 +170,13 @@ const SearchForm = ({
           anchorOrigin={{
             vertical: 'bottom',
             horizontal: 'left',
-          }}
-        >
-          <Box sx={{ p: 2 }}>
-            <Typography>Adults (2+)</Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-              <IconButton onClick={() => setAdults(Math.max(1, adults - 1))}>-</IconButton>
-              <Typography sx={{ mx: 2 }}>{adults}</Typography>
-              <IconButton onClick={() => setAdults(adults + 1)}>+</IconButton>
-            </Box>
-            <Typography>Children ({'<'}2)</Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton onClick={() => setChildren(Math.max(0, children - 1))}>-</IconButton>
-              <Typography sx={{ mx: 2 }}>{children}</Typography>
-              <IconButton onClick={() => setChildren(children + 1)}>+</IconButton>
-            </Box>
-          </Box>
+          }}>
+          <PassengerSelector
+            passengers={passengers}
+            setPassengers={setPassengers}
+            seatType={seatType}
+            setSeatType={setSeatType}
+          />
         </Popover>
       </Box>
       <Popover
@@ -239,3 +232,34 @@ const SearchForm = ({
 };
 
 export default SearchForm;
+
+
+function PassengerSelector({passengers, setPassengers, seatType, setSeatType}) {
+  return (
+    <Box sx={{ p: 2, minWidth: 250 }}>
+      <Typography variant="subtitle1" gutterBottom>Passengers</Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+        <IconButton onClick={() => setPassengers(Math.max(1, passengers - 1))}>
+          -
+        </IconButton>
+        <Typography sx={{ mx: 2 }}>{passengers}</Typography>
+        <IconButton onClick={() => setPassengers(Math.min(10, passengers + 1))}>
+          +
+        </IconButton>
+      </Box>
+      <FormControl fullWidth>
+        <InputLabel id="seat-type-label">Seat Type</InputLabel>
+        <Select
+          labelId="seat-type-label"
+          value={seatType}
+          label="Seat Type"
+          onChange={(e) => setSeatType(e.target.value)}
+        >
+          <MenuItem value="Economy">Economy</MenuItem>
+          <MenuItem value="Business">Business</MenuItem>
+          <MenuItem value="First">First</MenuItem>
+        </Select>
+      </FormControl>
+    </Box>
+  );
+};

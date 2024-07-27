@@ -10,6 +10,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import { marked } from 'marked'; // Import marked for Markdown parsing
 import { makeGPTRequests } from '../utils/api';
+import { getLandingChatHTML, getLandingChatMessage } from '../utils/other';
 import {airpotCodes} from '../airportcodes.js'
 
 const ChatModal = ({ 
@@ -19,14 +20,14 @@ const ChatModal = ({
     flyingTo, setFlyingTo,
     startDate, setStartDate,
     returnDate, setReturnDate,
-    adults, setAdults,
-    children, setChildren,
+    passengers, setPassengers,
+    seatType, setSeatType,
     carryOnBags, setCarryOnBags,
     checkedBags, setCheckedBags 
   }) => {
 
-  const [aiMessages, setAIMessages] = useState([])
-  const [messages, setMessages] = useState([]);
+  const [aiMessages, setAIMessages] = useState([getLandingChatMessage()])
+  const [messages, setMessages] = useState([{sender: 'ai', text: getLandingChatHTML()}]);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const messagesEndRef = useRef(null);
@@ -36,8 +37,7 @@ const ChatModal = ({
     "flying_to":"",
     "start_date":"",
     "return_date":"",
-    "num_adults":"",
-    "num_children":"",
+    "num_passengers":"",
     "num_carryOn":"",
     "num_checked":""
   })
@@ -49,8 +49,8 @@ const ChatModal = ({
       "flying_to": flyingTo!=="" ? flyingTo : fieldErrors.flying_to,
       "start_date": startDate!==null  ? startDate : fieldErrors.start_date,
       "return_date": returnDate!==null ? returnDate : fieldErrors.return_date,
-      "num_adults": adults!==null ? adults : fieldErrors.num_adults,
-      "num_children": children!==null ? children : fieldErrors.num_children,
+      "num_passengers": passengers!==null ? passengers : fieldErrors.num_passengers,
+      "seat_type": seatType!==null ? seatType : fieldErrors.seatType,
       "num_carryOn": carryOnBags!==null ? carryOnBags : fieldErrors.num_carryOn,
       "num_checked": checkedBags!==null ? checkedBags : fieldErrors.num_checked
     };
@@ -63,11 +63,8 @@ const ChatModal = ({
     const parsed = parseInt(arg);
     if (isNaN(parsed)) {
       setFieldErrors({...fieldErrors, [field]:"#ERROR: Provided value wasn't an integer"})
-    } else if(field === "num_adults" && (![1, 2, 3, 4, 5].includes(parsed))) {
-      setFieldErrors({ ...fieldErrors, [field]: "#ERROR: Provided value should be one of 1,2,3,4,5"});
-      return {"msg":400}
-    } else if(field === "num_kids" && (![1, 2, 3, 4, 5].includes(parsed))) {
-      setFieldErrors({ ...fieldErrors, [field]: "#ERROR: Provided value should be one of 0,1,2,3,4,5"});
+    } else if(field === "num_passengers" && (![1, 2, 3, 4, 5].includes(parsed))) {
+      setFieldErrors({ ...fieldErrors, [field]: "#ERROR: Provided value should be between 1 and 10"});
       return {"msg":400}
     } else if(field === "num_carryOn" && (![1, 2, 3, 4, 5].includes(parsed))) {
       setFieldErrors({...fieldErrors, [field]: "#ERROR: Provided value should be one of 0,1"});
@@ -173,21 +170,21 @@ const ChatModal = ({
         setReturnDate(null)
       }
 
-    } else if(setter==="setAdults") {
-      const res = verifyMinMaxType("num_adults", arg)
+    } else if(setter==="setPassengers") {
+      const res = verifyMinMaxType("num_passengers", arg)
       if(res.msg===200) {
-        setAdults(parseInt(res.arg))
+        setPassengers(parseInt(res.arg))
       } else {
-        setAdults(null)
+        setPassengers(null)
       }
-
-    } else if(setter==="setChildren") {
-      const res = verifyMinMaxType("num_children", arg)
-      if(res.msg===200) {
-        setChildren(parseInt(res.arg))
-      } else {
-        setChildren(null)
-      }
+    
+    } else if(setter="setSeatType") {
+     if(!['Economy','Business','First'].includes(arg)) {
+      setFieldErrors({...fieldErrors, "seat_type":"#ERROR: Invalid value. It should be either Economy or Business or First"})
+      setSeatType("")
+    } else {
+      setSeatType(arg)
+    }
 
     } else if(setter==="setCarryOnBags") {
       const res = verifyMinMaxType("num_carryOn", arg)
@@ -237,14 +234,14 @@ const ChatModal = ({
 
   const sendMessage = async (userMessage) => {
     try {
-      setMessages((prev) => [...prev, { sender: 'user', text: userMessage }]);
+      setMessages((prev) => [{ sender: 'user', text: userMessage }, ...prev]);
       const prevAIMessage = aiMessages ? aiMessages[aiMessages.length - 1] : ""
       const inputObjString = getCompletedObject()
       console.log("Send:", userMessage, prevAIMessage, inputObjString, fieldErrors)
       const [codeResponse, userResponse] = await makeGPTRequests(userMessage, prevAIMessage, inputObjString)
       console.log("Return:", codeResponse, userResponse)
       const htmlContent = marked(userResponse); // Convert Markdown to HTML
-      setMessages((prev) => [{ sender: 'ai', text: htmlContent }, ...prev]);
+      setMessages((prev) => [{sender: 'ai', text: htmlContent }, ...prev]);
       setAIMessages((prev) => [...prev, userResponse])
       commandCenter(codeResponse)
     } catch (error) {
@@ -298,7 +295,7 @@ const ChatModal = ({
             <CloseIcon />
           </IconButton>
         </Box>
-        <Box sx={{ flexGrow: 1, overflowY: 'auto', mb: 2}}>
+        <Box sx={{ flexGrow: 1, overflowY: 'auto', mb: 2, display: 'flex', flexDirection:'column-reverse'}}>
           {messages.map((msg, index) => (
             <Box
               key={index}
@@ -308,7 +305,6 @@ const ChatModal = ({
               {/* <Typography>{msg.text}</Typography> */}
             </Box>
           ))}
-          <div ref={messagesEndRef} />
         </Box>
         <Box sx={{ mt: 'auto', borderTop: '1px solid', borderColor: 'divider', pt: 2 }}>
           <TextField
@@ -323,6 +319,7 @@ const ChatModal = ({
             }}
             sx={{ bgcolor: 'rgb(248 250 252)', borderRadius: 1 }}
           />
+          <div ref={messagesEndRef} />
         </Box>
       </Box>
     </Box>

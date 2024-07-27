@@ -14,10 +14,10 @@ const InputLayout = () => {
   const [flyingTo, setFlyingTo] = useState("");
   const [startDate, setStartDate] = useState(null);
   const [returnDate, setReturnDate] = useState(null);
-  const [adults, setAdults] = useState(null);
-  const [children, setChildren] = useState(null);
-  const [carryOnBags, setCarryOnBags] = useState(null);
-  const [checkedBags, setCheckedBags] = useState(null);
+  const [passengers, setPassengers] = useState(null)
+  const [seatType, setSeatType] = useState("Economy")
+  const [carryOnBags, setCarryOnBags] = useState(1);
+  const [checkedBags, setCheckedBags] = useState(0);
 
   return (
     <Box sx={{ display: 'flex', height: '100vh' }}>
@@ -36,10 +36,10 @@ const InputLayout = () => {
             setStartDate={setStartDate}
             returnDate={returnDate}
             setReturnDate={setReturnDate}
-            adults={adults}
-            setAdults={setAdults}
-            children={children}
-            setChildren={setChildren}
+            passengers={passengers}
+            setPassengers={setPassengers}
+            seatType={seatType}
+            setSeatType={setSeatType}
             carryOnBags={carryOnBags}
             setCarryOnBags={setCarryOnBags}
             checkedBags={checkedBags}
@@ -60,10 +60,10 @@ const InputLayout = () => {
       setStartDate={setStartDate}
       returnDate={returnDate}
       setReturnDate={setReturnDate}
-      adults={adults}
-      setAdults={setAdults}
-      children={children}
-      setChildren={setChildren}
+      passengers={passengers}
+      setPassengers={setPassengers}
+      seatType={seatType}
+      setSeatType={setSeatType}
       carryOnBags={carryOnBags}
       setCarryOnBags={setCarryOnBags}
       checkedBags={checkedBags}
