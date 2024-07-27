@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import OpenAI from "openai";
 import {
   Box,
   Typography,
@@ -11,6 +10,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import { marked } from 'marked'; // Import marked for Markdown parsing
 import { makeGPTRequests } from '../utils/api';
+import {airpotCodes} from '../airportcodes.js'
 
 const ChatModal = ({ 
     open, onClose,
@@ -24,49 +24,187 @@ const ChatModal = ({
     carryOnBags, setCarryOnBags,
     checkedBags, setCheckedBags 
   }) => {
+
   const [aiMessages, setAIMessages] = useState([])
   const [messages, setMessages] = useState([]);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const messagesEndRef = useRef(null);
+  const [fieldErrors, setFieldErrors] = useState({
+    "trip_type":"",
+    "flying_from":"",
+    "flying_to":"",
+    "start_date":"",
+    "return_date":"",
+    "num_adults":"",
+    "num_children":"",
+    "num_carryOn":"",
+    "num_checked":""
+  })
 
   function getCompletedObject() {
     const obj = {
-      "trip_type":tripType,
-      "flying_from":flyingFrom,
-      "flying_to":flyingTo,
-      "start_date":startDate,
-      "return_date":returnDate,
-      "num_adults":adults,
-      "num_kids":children,
-      "num_carryOn":carryOnBags,
-      "num_checked":checkedBags
-    }
+      "trip_type": tripType,
+      "flying_from": flyingFrom!=="" ? flyingFrom : fieldErrors.flying_from,
+      "flying_to": flyingTo!=="" ? flyingTo : fieldErrors.flying_to,
+      "start_date": startDate!==null  ? startDate : fieldErrors.start_date,
+      "return_date": returnDate!==null ? returnDate : fieldErrors.return_date,
+      "num_adults": adults!==null ? adults : fieldErrors.num_adults,
+      "num_children": children!==null ? children : fieldErrors.num_children,
+      "num_carryOn": carryOnBags!==null ? carryOnBags : fieldErrors.num_carryOn,
+      "num_checked": checkedBags!==null ? checkedBags : fieldErrors.num_checked
+    };
 
     const objStr = JSON.stringify(obj)
-
     return objStr
+  }
+
+  function verifyMinMaxType(field, arg) {
+    const parsed = parseInt(arg);
+    if (isNaN(parsed)) {
+      setFieldErrors({...fieldErrors, [field]:"#ERROR: Provided value wasn't an integer"})
+    } else if(field === "num_adults" && (![1, 2, 3, 4, 5].includes(parsed))) {
+      setFieldErrors({ ...fieldErrors, [field]: "#ERROR: Provided value should be one of 1,2,3,4,5"});
+      return {"msg":400}
+    } else if(field === "num_kids" && (![1, 2, 3, 4, 5].includes(parsed))) {
+      setFieldErrors({ ...fieldErrors, [field]: "#ERROR: Provided value should be one of 0,1,2,3,4,5"});
+      return {"msg":400}
+    } else if(field === "num_carryOn" && (![1, 2, 3, 4, 5].includes(parsed))) {
+      setFieldErrors({...fieldErrors, [field]: "#ERROR: Provided value should be one of 0,1"});
+      return {"msg":400}
+    } else if(field === "num_checked" && (![1, 2, 3, 4, 5].includes(parsed))) {
+      setFieldErrors({ ...fieldErrors, [field]: "#ERROR: Provided value should be one of 0,1,2,3,4,5"});
+      return {"msg":400}
+    } else {
+      setFieldErrors({...fieldErrors, [field]: ""})
+      return {"msg":200, "arg":arg}
+    }
+  }
+
+  function verifyAirportCode(airportSource, arg) {
+    if(airportSource==="from") {
+      if(arg===flyingTo) {
+        setFieldErrors({...fieldErrors, "flying_from":"#ERROR: flying_from airport is the same as flying_to airport"})
+        return {"msg":400}
+      } else if(!airpotCodes.hasOwnProperty(arg)) {
+        setFieldErrors({...fieldErrors, "flying_from":"#ERROR: flying_from airport code is not valid. Verify with user"})
+        return {"msg":400}
+      } else {
+        setFieldErrors({...fieldErrors, "flying_from":""})
+        return {"msg":200, "arg":arg}
+      }
+    } else if(airportSource==="to") {
+      if(flyingFrom===arg) {
+        setFieldErrors({...fieldErrors, "flying_to":"#ERROR: flying_to airport is the same as flying_from airport"})
+        return {"msg":400}
+      } else if(!airpotCodes.hasOwnProperty(arg)) {
+        setFieldErrors({...fieldErrors, "flying_to":"#ERROR: flying_to airport is not valid. Verify with user"})
+        return {"msg":400}
+      } else {
+        setFieldErrors({...fieldErrors, "flying_to":""})
+        return {"msg":200, "arg":arg}
+      }
+    }
+  }
+
+  function verifyDate(dateType, arg) {
+
+    const [year, month, day] = arg.split('-').map(Number);
+    const utcDate = new Date(Date.UTC(year, month - 1, day+1));
+    const todayDate = new Date()
+    if(dateType==='start_date') {
+      if(utcDate < todayDate) {
+        setFieldErrors({...fieldErrors, "start_date":"#ERROR: Start date is earlier than current date"})
+        return {"msg":400}
+      } else {
+        setFieldErrors({"start_date":"", ...fieldErrors})
+        return {"msg":200, "arg":utcDate.toISOString()}
+      }
+    } else if(dateType==="return_date") {
+        if(startDate & new Date(utcDate.toISOString()) < startDate)  {
+          setFieldErrors({...fieldErrors, "start_date":"#ERROR: Start date is earlier than current date"})
+          return {"msg":400}
+      } else {
+        setFieldErrors({"return_date":"", ...fieldErrors})
+        return {"msg":200, "arg":utcDate.toISOString()}
+      }
+    }
   }
 
   function runSetFunctions(setter, arg) {
     if(setter==="setTripType") {
-      setTripType(arg)
+      if(!['Round-trip','One-way'].includes(arg)) {
+        setFieldErrors({...fieldErrors, "trip_type":"#ERROR: Invalid value. It should be either Round-trip or One-way"})
+        setTripType("")
+      } else {
+        setTripType(arg)
+      }
+
     } else if (setter==="setFlyingFrom") {
-      setFlyingFrom(arg)
+      const res = verifyAirportCode("from", arg)
+      if(res.msg===200) {
+        setFlyingFrom(arg)
+      } else {
+        setFlyingFrom("")
+      }
+
     } else if(setter==="setFlyingTo") {
-      setFlyingTo(arg)
+      const res = verifyAirportCode("to", arg)
+      if(res.msg===200) {
+        setFlyingTo(arg)
+      } else {
+        setFlyingTo("")
+      }
+
+
     } else if(setter==="setStartDate") {
-      setStartDate(arg)
+      const res = verifyDate("start_date", arg)
+      if(res.msg===200) {
+        setStartDate(new Date(res.arg))
+      } else {
+        setStartDate(null)
+      }
+
     } else if(setter==="setReturnDate") {
-      setReturnDate(arg)
+      const res = verifyDate("return_date", arg)
+      if(res.msg===200) {
+        setReturnDate(new Date(res.arg))
+      } else {
+        setReturnDate(null)
+      }
+
     } else if(setter==="setAdults") {
-      setAdults(arg)
+      const res = verifyMinMaxType("num_adults", arg)
+      if(res.msg===200) {
+        setAdults(parseInt(res.arg))
+      } else {
+        setAdults(null)
+      }
+
     } else if(setter==="setChildren") {
-      setChildren(arg)
+      const res = verifyMinMaxType("num_children", arg)
+      if(res.msg===200) {
+        setChildren(parseInt(res.arg))
+      } else {
+        setChildren(null)
+      }
+
     } else if(setter==="setCarryOnBags") {
-      setCarryOnBags(arg)
+      const res = verifyMinMaxType("num_carryOn", arg)
+      if(res.msg===200) {
+        setCarryOnBags(parseInt(res.arg))
+      } else {
+        setCarryOnBags(null)
+      }
+
     } else if(setter==="setCheckedBags") {
-      setCheckedBags(arg)
+      const res = verifyMinMaxType("num_checked", arg)
+      if(res.msg===200) {
+        setCheckedBags(parseInt(res.arg))
+      } else {
+        setCheckedBags(null)
+      }
+      
     } else {
       console.log("There was an error!")
     }
@@ -74,29 +212,41 @@ const ChatModal = ({
 
   function commandCenter(codeResponse) {
 
-    const modifiedStr = codeResponse.replace(/(\w+)/, '"$1"');
-    // Parse the modified string to get the array
-    const array = JSON.parse(modifiedStr);
-    while(array.length > 0){
-      const arg = array.pop()
-      const setter = array.pop()
-      runSetFunction(setter, arg)
-    }
+    try {
 
+      if (codeResponse === "[]") {
+        console.log("Nothing to run");
+        return;
+      }
+
+      const cleanedResponse = codeResponse.replace(/\[|\]/g, '');
+      const array = cleanedResponse.split(',').map(str => str.trim());
+      console.log(array);
+      console.log(array.length);
+      
+      for (let i = 0; i < array.length; i += 2) {
+        const setter = array[i];
+        const arg = array[i + 1];
+        console.log(setter, arg);
+        runSetFunctions(setter, arg);
+      }
+    } catch (error) {
+      console.error("Error parsing or processing response:", error);
+    }
   }
 
   const sendMessage = async (userMessage) => {
     try {
-      setMessages((prev) => [{ sender: 'user', text: userMessage }, ...prev]);
+      setMessages((prev) => [...prev, { sender: 'user', text: userMessage }]);
       const prevAIMessage = aiMessages ? aiMessages[aiMessages.length - 1] : ""
       const inputObjString = getCompletedObject()
-      console.log("Send:", userMessage, prevAIMessage, inputObjString)
+      console.log("Send:", userMessage, prevAIMessage, inputObjString, fieldErrors)
       const [codeResponse, userResponse] = await makeGPTRequests(userMessage, prevAIMessage, inputObjString)
-      commandCenter(codeResponse)
       console.log("Return:", codeResponse, userResponse)
       const htmlContent = marked(userResponse); // Convert Markdown to HTML
       setMessages((prev) => [{ sender: 'ai', text: htmlContent }, ...prev]);
-      setAIMessages((prev) => [userResponse, ...prev])
+      setAIMessages((prev) => [...prev, userResponse])
+      commandCenter(codeResponse)
     } catch (error) {
       console.error("Error fetching response:", error);
     }
@@ -148,7 +298,7 @@ const ChatModal = ({
             <CloseIcon />
           </IconButton>
         </Box>
-        <Box sx={{ flexGrow: 1, overflowY: 'auto', mb: 2, display: 'flex', flexDirection: 'column-reverse' }}>
+        <Box sx={{ flexGrow: 1, overflowY: 'auto', mb: 2}}>
           {messages.map((msg, index) => (
             <Box
               key={index}

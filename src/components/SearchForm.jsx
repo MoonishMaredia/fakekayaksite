@@ -60,13 +60,19 @@ const SearchForm = ({
         Search flights using AI assistant
       </Typography>
       <Box sx={{ mb: 2, mt: 6, display: 'flex', alignItems: 'center' }}>
-        <Select
+      <Select
           value={tripType}
           onChange={(e) => setTripType(e.target.value)}
-          display="Round-trip"
+          displayEmpty
+          renderValue={(selected) => {
+            if (selected.length === 0) {
+              return "Select trip type";
+            }
+            return selected;
+          }}
           variant="outlined"
-          sx={{ mr: 1, width: '50%' }}
-        >
+          sx={{ mr: 1, width: '50%' }}>
+          <MenuItem value="" disabled>Select trip type</MenuItem>
           <MenuItem value="Round-trip">Round-trip</MenuItem>
           <MenuItem value="One-way">One-way</MenuItem>
         </Select>
