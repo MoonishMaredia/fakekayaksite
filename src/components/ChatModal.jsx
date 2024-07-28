@@ -12,9 +12,10 @@ import { marked } from 'marked'; // Import marked for Markdown parsing
 import { makeGPTRequests } from '../utils/api';
 import { getLandingChatHTML, getLandingChatMessage } from '../utils/other';
 import {airpotCodes} from '../airportcodes.js'
+import { useNavigate } from 'react-router-dom';
 
 const ChatModal = ({ 
-    open, onClose,
+    open, onClose, setLoading,
     tripType, setTripType,
     flyingFrom, setFlyingFrom,
     flyingTo, setFlyingTo,
@@ -26,6 +27,7 @@ const ChatModal = ({
     checkedBags, setCheckedBags 
   }) => {
 
+  const navigate = useNavigate();
   const [aiMessages, setAIMessages] = useState([getLandingChatMessage()])
   const [messages, setMessages] = useState([{sender: 'ai', text: getLandingChatHTML()}]);
   const theme = useTheme();
@@ -41,6 +43,15 @@ const ChatModal = ({
     "num_carryOn":"",
     "num_checked":""
   })
+
+  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+  async function handleSubmit() {
+    onClose()
+    setLoading(true)
+    await sleep(5000)
+    navigate('/results')
+  }
 
   function getCompletedObject() {
     const obj = {
@@ -238,8 +249,13 @@ const ChatModal = ({
       const prevAIMessage = aiMessages ? aiMessages[aiMessages.length - 1] : ""
       const inputObjString = getCompletedObject()
       console.log("Send:", userMessage, prevAIMessage, inputObjString, fieldErrors)
-      const [codeResponse, userResponse] = await makeGPTRequests(userMessage, prevAIMessage, inputObjString)
-      console.log("Return:", codeResponse, userResponse)
+      const [completeResponse, codeResponse, userResponse] = await makeGPTRequests(userMessage, prevAIMessage, inputObjString)
+      console.log("Return:", completeResponse, codeResponse, userResponse)
+
+      if(completeResponse==="true") {
+        handleSubmit()
+      }
+
       const htmlContent = marked(userResponse); // Convert Markdown to HTML
       setMessages((prev) => [{sender: 'ai', text: htmlContent }, ...prev]);
       setAIMessages((prev) => [...prev, userResponse])

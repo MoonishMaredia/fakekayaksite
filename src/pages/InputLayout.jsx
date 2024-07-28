@@ -3,6 +3,7 @@ import { Container, Box } from '@mui/material';
 import HeaderLayout from '../components/HeaderLayout';
 import SearchForm from '../components/SearchForm';
 import ChatModal from '../components/ChatModal';
+import LoadingIndicator from '../components/LoadingIndicator'
 
 const InputLayout = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -18,12 +19,14 @@ const InputLayout = () => {
   const [seatType, setSeatType] = useState("Economy")
   const [carryOnBags, setCarryOnBags] = useState(1);
   const [checkedBags, setCheckedBags] = useState(0);
+  const [loading, setLoading] = useState(false)
 
   return (
     <Box sx={{ display: 'flex', height: '100vh' }}>
       <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
         <HeaderLayout onChatOpen={handleChatOpen} />
         <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
+          {loading && <LoadingIndicator />}
           <Container maxWidth="sm" sx={{ mt: 4 }}>
           <SearchForm 
             tripType={tripType}
@@ -43,7 +46,8 @@ const InputLayout = () => {
             carryOnBags={carryOnBags}
             setCarryOnBags={setCarryOnBags}
             checkedBags={checkedBags}
-            setCheckedBags={setCheckedBags}/>
+            setCheckedBags={setCheckedBags}
+            setLoading={setLoading}/>
           </Container>
         </Box>
       </Box>
@@ -67,7 +71,8 @@ const InputLayout = () => {
       carryOnBags={carryOnBags}
       setCarryOnBags={setCarryOnBags}
       checkedBags={checkedBags}
-      setCheckedBags={setCheckedBags}/>
+      setCheckedBags={setCheckedBags}
+      setLoading={setLoading}/>
     </Box>
   );
 };

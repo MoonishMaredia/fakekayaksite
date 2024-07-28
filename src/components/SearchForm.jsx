@@ -20,6 +20,7 @@ import FlightLandIcon from '@mui/icons-material/FlightLand';
 import EventIcon from '@mui/icons-material/Event';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import LuggageIcon from '@mui/icons-material/Luggage';
+import {airpotCodes} from '../airportcodes.js'
 
 const SearchForm = ({
     tripType, setTripType,
@@ -52,6 +53,31 @@ const SearchForm = ({
     setBagAnchorEl(null);
   };
 
+  const isFormValid = () => {
+    // Check for empty strings, null or undefined
+    if (!tripType || !flyingFrom || !flyingTo || !startDate || !passengers || !seatType || carryOnBags === null || checkedBags === null) {
+      return false;
+    }
+  
+    // Check for Round-trip specific condition
+    if (tripType === 'Round-trip' && !returnDate) {
+      return false;
+    }
+  
+    // Check implicit conditions from the provided functions
+    if (!['Round-trip', 'One-way'].includes(tripType)) return false;
+    if (!airpotCodes.hasOwnProperty(flyingFrom) || !airpotCodes.hasOwnProperty(flyingTo)) return false;
+    if (flyingFrom === flyingTo) return false;
+    if (startDate < new Date()) return false;
+    if (tripType === 'Round-trip' && returnDate < startDate) return false;
+    if (passengers < 1 || passengers > 10) return false;
+    if (!['Economy', 'Business', 'First'].includes(seatType)) return false;
+    if (carryOnBags < 0 || carryOnBags > 1) return false;
+    if (checkedBags < 0 || checkedBags > 5) return false;
+  
+    return true;
+  };
+
   const passengerOpen = Boolean(passengerAnchorEl);
   const bagOpen = Boolean(bagAnchorEl);
   const totalBags = carryOnBags + checkedBags;
@@ -59,7 +85,7 @@ const SearchForm = ({
   return (
     <>
       <Typography variant="h4" component="h1" sx={{ textAlign: 'center' }} gutterBottom>
-        Search flights using AI assistant
+        Search fake flights in the USA using an AI assistant
       </Typography>
       <Box sx={{ mb: 2, mt: 6, display: 'flex', alignItems: 'center' }}>
       <Select
@@ -206,26 +232,21 @@ const SearchForm = ({
           </Box>
         </Box>
       </Popover>
-      {/* <Box sx={{ mb: 2 }}>
-        <FormControlLabel
-          control={<Switch />}
-          label="Nonstop only"
-          labelPlacement="start"
-          sx={{ ml: 0, justifyContent: 'space-between', width: '100%' }}
-        />
-      </Box> */}
       <Button
-        variant="contained"
-        fullWidth
-        size="large"
-        sx={{
-          backgroundColor: '#FF6B00',
-          '&:hover': {
-            backgroundColor: '#E66000',
-          },
-        }}
-      >
-        Search
+          variant="contained"
+          fullWidth
+          size="large"
+          disabled={!isFormValid()}
+          sx={{
+            backgroundColor: '#FF6B00',
+            '&:hover': {
+              backgroundColor: '#E66000',
+            },
+            '&:disabled': {
+              backgroundColor: '#FFB27F',
+            },
+          }}>
+          Search
       </Button>
     </>
   );

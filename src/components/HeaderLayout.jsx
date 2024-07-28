@@ -16,7 +16,7 @@ const HeaderLayout = ({ onChatOpen }) => {
           <MenuIcon />
         </IconButton>
         <Typography variant="h6" sx={{ flexGrow: 1, textAlign: 'center' }}>
-          K
+          FakeKayak
         </Typography>
         <IconButton color="inherit" onClick={onChatOpen}>
           <ChatIcon />

@@ -13,8 +13,22 @@ export async function makeGPTRequests(userMessage, prevAIMessage, inputObjString
   let year = date.getFullYear();
   let currentDate = `${day}-${month}-${year}`
 
-  const [codeResponse, userResponse]  = await Promise.all(
+  const [completionResponse, codeResponse, userResponse]  = await Promise.all(
       [openai.chat.completions.create({
+        messages: [
+          { role: "system", content: `You are an AI assistant for a flight search website responsible for determining whether a user's flight search request is complete and ready to be submitted to the next step. 
+            Your task is to analyze the following pieces of information to determine if the request is complete and the user is ready to submit the request for processing:
+            1) Review the information gathered thus far to determine if all fields have been gathered and none of the fields are empty or invalid. This gathered information is summarized in an object called "Current Gathered Information:" 
+            2) Review the latest user response in tandem with the message they are responding to in order to determine whether the user is ready to submit their request. The message the user is responding to is provided as the following: "Message User is Responding To:"
+            3) If the information is complete and the user is ready for final submission, respond with true. In all other cases, respond with false.
+            Current Gathered Information: ${inputObjString}
+            Message User is Responding To: ${prevAIMessage}`
+          },
+          { role: "user", content:`${userMessage}`},
+        ],
+        model: "gpt-4o",
+      }),
+      openai.chat.completions.create({
       messages: [
         { role: "system", content: `You are an AI assistant for a flight search website. Your task is to analyze the user's input and determine which set functions need to be run
           in order to store and track the user's inputs. Respond with the appropriate function calls in the following format: [functionName1, functionArguments1, functionName2, functionArguments2]
@@ -94,6 +108,6 @@ export async function makeGPTRequests(userMessage, prevAIMessage, inputObjString
     })]
   );
 
-  return [codeResponse.choices[0].message.content, userResponse.choices[0].message.content]
+  return [completionResponse.choices[0].message.content, codeResponse.choices[0].message.content, userResponse.choices[0].message.content]
 
   }
