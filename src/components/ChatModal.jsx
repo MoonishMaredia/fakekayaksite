@@ -49,12 +49,12 @@ const ChatModal = ({
   async function handleSubmit() {
     onClose()
     setLoading(true)
-    await sleep(5000)
+    await sleep(7000)
     navigate('/results')
   }
 
   function getCompletedObject() {
-    const obj = {
+    const objStr = {
       "trip_type": tripType,
       "flying_from": flyingFrom!=="" ? flyingFrom : fieldErrors.flying_from,
       "flying_to": flyingTo!=="" ? flyingTo : fieldErrors.flying_to,
@@ -66,7 +66,6 @@ const ChatModal = ({
       "num_checked": checkedBags!==null ? checkedBags : fieldErrors.num_checked
     };
 
-    const objStr = JSON.stringify(obj)
     return objStr
   }
 
@@ -248,7 +247,8 @@ const ChatModal = ({
       setMessages((prev) => [{ sender: 'user', text: userMessage }, ...prev]);
       const prevAIMessage = aiMessages ? aiMessages[aiMessages.length - 1] : ""
       const inputObjString = getCompletedObject()
-      console.log("Send:", userMessage, prevAIMessage, inputObjString, fieldErrors)
+      console.log("========Sending========:")
+      console.log("fieldErrors: ", fieldErrors)
       const [completeResponse, codeResponse, userResponse] = await makeGPTRequests(userMessage, prevAIMessage, inputObjString)
       console.log("Return:", completeResponse, codeResponse, userResponse)
 
