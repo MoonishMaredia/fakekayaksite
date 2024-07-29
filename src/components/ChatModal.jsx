@@ -252,7 +252,7 @@ const ChatModal = ({
       const [completeResponse, codeResponse, userResponse] = await makeGPTRequests(userMessage, prevAIMessage, inputObjString)
       console.log("Return:", completeResponse, codeResponse, userResponse)
 
-      if(completeResponse==="true") {
+      if(completeResponse==="True") {
         handleSubmit()
       }
 
