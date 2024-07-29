@@ -222,19 +222,19 @@ const ChatModal = ({
     try {
 
       if (codeResponse === "[]") {
-        console.log("Nothing to run");
+        // console.log("Nothing to run");
         return;
       }
 
       const cleanedResponse = codeResponse.replace(/\[|\]/g, '');
       const array = cleanedResponse.split(',').map(str => str.trim());
-      console.log(array);
-      console.log(array.length);
+      // console.log(array);
+      // console.log(array.length);
       
       for (let i = 0; i < array.length; i += 2) {
         const setter = array[i];
         const arg = array[i + 1];
-        console.log(setter, arg);
+        // console.log(setter, arg);
         runSetFunctions(setter, arg);
       }
     } catch (error) {
@@ -247,10 +247,10 @@ const ChatModal = ({
       setMessages((prev) => [{ sender: 'user', text: userMessage }, ...prev]);
       const prevAIMessage = aiMessages ? aiMessages[aiMessages.length - 1] : ""
       const inputObjString = getCompletedObject()
-      console.log("========Sending========:")
-      console.log("fieldErrors: ", fieldErrors)
+      // console.log("========Sending========:")
+      // console.log("fieldErrors: ", fieldErrors)
       const [completeResponse, codeResponse, userResponse] = await makeGPTRequests(userMessage, prevAIMessage, inputObjString)
-      console.log("Return:", completeResponse, codeResponse, userResponse)
+      // console.log("Return:", completeResponse, codeResponse, userResponse)
 
       if(completeResponse==="True") {
         handleSubmit()
