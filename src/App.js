@@ -7,8 +7,8 @@ function App() {
   return (
     <main className="App">
       <Routes>
-        <Route exact path= "/" element={<Navigate replace to="/inputs"/>}></Route>
-        <Route path= "inputs" element={<InputLayout />} />
+        <Route exact path= "/" element={<Navigate replace to="/results"/>}></Route>
+        {/* <Route path= "inputs" element={<InputLayout />} /> */}
         <Route path= "results" element={<ResultsLayout />} />
       </Routes>
     </main>
