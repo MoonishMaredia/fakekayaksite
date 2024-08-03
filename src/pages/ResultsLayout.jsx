@@ -65,8 +65,11 @@ const FlightResultsPage = () => {
           maxWidth: isMobile ? '100%' : '82%',
           gap: 2 }}>
         <Typography variant="h6" sx={{ mb: 1 }}>Best departing flights</Typography>
-        {[1, 2, 3,4,5,6,7,8,9,10,11,12,13,14,15,16].map((flight) => (
-            <FlightCard/>
+        {[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16].map((flight) => (
+            <FlightCard
+              key={flight}
+              isMobile={isMobile}
+            />
         ))}
       </Box>
     </Box>

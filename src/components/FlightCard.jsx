@@ -16,7 +16,7 @@ import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 import WarningIcon from '@mui/icons-material/Warning';
 import AirlineSeatReclineNormalIcon from '@mui/icons-material/AirlineSeatReclineNormal';
 
-const FlightCard = () => {
+const FlightCard = ({ isMobile }) => {
   const [expanded, setExpanded] = useState(false);
 
   const handleExpandClick = () => {
@@ -26,58 +26,96 @@ const FlightCard = () => {
   return (
     <Card sx={{}}>
       <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Box display="flex" alignItems="center">
-            <FlightTakeoffIcon color="primary" sx={{ mr: 1 }} />
+        {isMobile ? (
+          // Mobile view
+          <Box display="flex" sx={{minHeight:"100px"}} justifyContent="space-between" alignItems="center">
             <Box>
-              <Typography variant="subtitle1" fontWeight="bold">
-                11:17 AM – 3:45 PM
+              <Typography variant="h8" sx={{fontSize:"14px"}} fontWeight="medium">
+                11:17AM → 3:45PM
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Frontier
+                IAH
               </Typography>
+              <Box display="flex" alignItems="center" mt={1}>
+                <FlightTakeoffIcon color="primary" sx={{ mr: 1, fontSize: 20 }} />
+                <Box display="flex" flexDirection="column" ml={1}>
+                  <Typography sx={{fontSize:"12px"}} variant="body2">
+                    1 stop in DEN
+                  </Typography>
+                  <Typography sx={{fontSize:"12px"}} variant="body2">
+                    Frontier
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+            <Box textAlign="right">
+              <Typography sx={{fontSize:'14px'}} variant="h8" fontWeight="medium">
+                $153 <Typography sx={{display:"inline", fontSize:'14px'}}> / total round trip</Typography>
+              </Typography>
+              <Typography variant="body2" sx={{fontSize:'10px'}} color="text.secondary">
+                Trip Cost: $145, Bag Fees: $8
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                
+              </Typography>
+              <IconButton
+                onClick={handleExpandClick}
+                aria-expanded={expanded}
+                aria-label="show more"
+                size="small"
+                sx={{mt:2}}
+              >
+                {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              </IconButton>
             </Box>
           </Box>
-          <Box textAlign="center">
-            <Typography variant="subtitle1" fontWeight="bold">
-              6 hr 28 min
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              IAH–PHX
-            </Typography>
+        ) : (
+          // Desktop view
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Box display="flex" alignItems="center">
+              <FlightTakeoffIcon color="primary" sx={{ mr: 1 }} />
+              <Box>
+                <Typography variant="subtitle1" fontWeight="medium">
+                  11:17 AM – 3:45 PM
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Frontier
+                </Typography>
+              </Box>
+            </Box>
+            <Box textAlign="center">
+              <Typography variant="subtitle1" fontWeight="medium">
+                6 hr 28 min
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                IAH–PHX
+              </Typography>
+            </Box>
+            <Box textAlign="center">
+              <Typography variant="subtitle1" fontWeight="medium">
+                1 stop
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                1 hr 59 min DEN
+              </Typography>
+            </Box>
+            <Box textAlign="right">
+              <Typography variant="h6" fontWeight="bold">
+                $153 <Typography sx={{display:"inline"}}> / total round trip</Typography>
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Trip Cost: $145, Bag Fees: $8
+              </Typography>
+            </Box>
+            <IconButton
+              onClick={handleExpandClick}
+              aria-expanded={expanded}
+              aria-label="show more"
+            >
+              {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+            </IconButton>
           </Box>
-          <Box textAlign="center">
-            <Typography variant="subtitle1" fontWeight="bold">
-              1 stop
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              1 hr 59 min DEN
-            </Typography>
-          </Box>
-          <Box textAlign="center">
-            <Typography variant="subtitle1" fontWeight="bold">
-              175 kg CO2e
-            </Typography>
-            <Typography variant="body2" color="primary">
-              +17% emissions ⓘ
-            </Typography>
-          </Box>
-          <Box textAlign="right">
-            <Typography variant="h6" fontWeight="bold">
-              $153
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              round trip
-            </Typography>
-          </Box>
-          <IconButton
-            onClick={handleExpandClick}
-            aria-expanded={expanded}
-            aria-label="show more"
-          >
-            {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-          </IconButton>
-        </Box>
+        )}
       </CardContent>
       
       <Collapse in={expanded} timeout="auto" unmountOnExit>
@@ -90,10 +128,10 @@ const FlightCard = () => {
             </Button>
           </Box>
           
-          <Box my={2}>
-            <Typography variant="body1" fontWeight="bold">11:17 AM · George Bush Intercontinental Airport (IAH)</Typography>
+          <Box my={2} >
+            <Typography sx={{fontSize: isMobile ? "14px" : "16px"}} variant="body1" fontWeight="medium">11:17 AM · George Bush Intercontinental Airport (IAH)</Typography>
             <Typography variant="body2" color="text.secondary" mt={1}>Travel time: 2 hr 34 min</Typography>
-            <Typography variant="body1" fontWeight="bold" mt={2}>12:51 PM · Denver International Airport (DEN)</Typography>
+            <Typography sx={{fontSize: isMobile ? "14px" : "16px"}} variant="body1" fontWeight="medium" mt={2}>12:51 PM · Denver International Airport (DEN)</Typography>
             
             <Stack direction="row" spacing={1} mt={1}>
               <Typography variant="body2">Frontier · Economy · Airbus A320neo · F9 3227</Typography>
@@ -102,31 +140,17 @@ const FlightCard = () => {
               <WarningIcon fontSize="small" sx={{ verticalAlign: 'middle', mr: 0.5 }} />
               Often delayed by 30+ min
             </Typography>
-            
-            <Box display="flex" justifyContent="flex-end" mt={1}>
-              <Typography variant="body2" color="text.secondary" mr={2}>
-                <AirlineSeatReclineNormalIcon fontSize="small" sx={{ verticalAlign: 'middle', mr: 0.5 }} />
-                Below average legroom (28 in)
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Emissions estimate: 100 kg CO2e ⓘ
-              </Typography>
-            </Box>
           </Box>
           
           <Divider />
-          
-          <Typography variant="body1" fontWeight="bold" my={2}>
+          <Typography variant="body2" fontWeight="medium" my={2}>
             1 hr 59 min layover · Denver (DEN)
           </Typography>
-          
           <Divider />
-          
           <Box my={2}>
-            <Typography variant="body1" fontWeight="bold">2:50 PM · Denver International Airport (DEN)</Typography>
+            <Typography sx={{fontSize: isMobile ? "14px" : "16px"}} variant="body1" fontWeight="medium">2:50 PM · Denver International Airport (DEN)</Typography>
             <Typography variant="body2" color="text.secondary" mt={1}>Travel time: 1 hr 55 min</Typography>
-            <Typography variant="body1" fontWeight="bold" mt={2}>3:45 PM · Phoenix Sky Harbor International Airport (PHX)</Typography>
-            
+            <Typography sx={{fontSize: isMobile ? "14px" : "16px"}} variant="body1" fontWeight="medium" mt={2}>3:45 PM · Phoenix Sky Harbor International Airport (PHX)</Typography>
             <Stack direction="row" spacing={1} mt={1}>
               <Typography variant="body2">Frontier · Economy · Airbus A320neo · F9 2141</Typography>
             </Stack>
@@ -134,16 +158,6 @@ const FlightCard = () => {
               <WarningIcon fontSize="small" sx={{ verticalAlign: 'middle', mr: 0.5 }} />
               Often delayed by 30+ min
             </Typography>
-            
-            <Box display="flex" justifyContent="flex-end" mt={1}>
-              <Typography variant="body2" color="text.secondary" mr={2}>
-                <AirlineSeatReclineNormalIcon fontSize="small" sx={{ verticalAlign: 'middle', mr: 0.5 }} />
-                Below average legroom (28 in)
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Emissions estimate: 75 kg CO2e ⓘ
-              </Typography>
-            </Box>
           </Box>
         </CardContent>
       </Collapse>
