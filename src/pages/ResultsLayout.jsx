@@ -3,6 +3,7 @@ import { Box, Typography, Paper, useMediaQuery, useTheme, Chip } from '@mui/mate
 import TripOptionsBar from '../components/TripOptionsBar';
 import FlightSearchBar from '../components/FlightSearchBar';
 import FilterComponent from '../components/Filters';
+import FlightCard from '../components/FlightCard';
 import HeaderLayout from '../components/HeaderLayout';
 
 const FlightResultsPage = () => {
@@ -64,10 +65,8 @@ const FlightResultsPage = () => {
           maxWidth: isMobile ? '100%' : '82%',
           gap: 2 }}>
         <Typography variant="h6" sx={{ mb: 1 }}>Best departing flights</Typography>
-        {[1, 2, 3].map((flight) => (
-          <Paper key={flight} sx={{ p: 2 }}>
-            <Typography variant="body1">Flight {flight}</Typography>
-          </Paper>
+        {[1, 2, 3,4,5,6,7,8,9,10,11,12,13,14,15,16].map((flight) => (
+            <FlightCard/>
         ))}
       </Box>
     </Box>
