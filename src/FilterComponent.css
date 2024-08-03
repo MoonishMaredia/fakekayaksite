@@ -9,16 +9,27 @@
     margin-bottom: 10px;
     overflow-x: auto;
   }
-  
+
   .filter-chip {
-    padding: 8px 16px;
+    padding: 0.4rem 1.1rem;
     border: 1px solid #ccc;
-    border-radius: 20px;
+    border-radius: 5px;
     background-color: white;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 0.9rem;
   }
   
+  @media (max-width: 600px) {
+    .filter-chip {
+      padding: 0.2rem 0.625rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: white;
+      cursor: pointer;
+      font-size: 0.7rem;
+      }
+  }
+
   .filter-chip.active {
     background-color: #e0e0e0;
   }
@@ -57,28 +68,40 @@
   .popover-content {
     padding: 10px;
   }
+
+  .price-filter {
+    padding-left: 10px;
+    padding-right: 10px;
+    min-width: 250px;
+    min-height: 80px;
+    color: gray;
+  }
   
   .price-filter input[type="range"] {
     width: 100%;
   }
 
   .stops-filter,
-  .airlines-filter {
+  .airlines-filter,
+  .connecting-airports-filter {
     display: flex;
     flex-direction: column;
     gap: 10px;
   }
   
 .stops-filter label, 
-.airlines-filter label {
+.airlines-filter label,
+.connecting-airports-filter label {
   display: flex;
   align-items: center;
   gap: 10px; /* Add space between checkbox and text */
   font-size: 0.875rem;
+  
 }
 
 .stops-filter input[type="checkbox"], 
-.airlines-filter input[type="checkbox"] {
+.airlines-filter input[type="checkbox"],
+.connecting-airports-filter input[type="checkbox"] {
   /* Square shape */
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -92,7 +115,8 @@
 }
 
 .stops-filter input[type="checkbox"]:checked::before,
-.airlines-filter input[type="checkbox"]:checked::before {
+.airlines-filter input[type="checkbox"]:checked::before,
+.connecting-airports-filter input[type="checkbox"]:checked::before {
   content: '\2713'; /* Checkmark character */
   display: block;
   text-align: center;
@@ -108,8 +132,30 @@
   left: 0;
 }
 
+.connecting-airports-filter > p {
+  margin-top: 0px;
+  margin-bottom: 10px;
+  color: gray;
+  font-size: 1em;
+}
 
-.times-filter {
+.connecting-airports-filter {
+  margin-bottom: 20px;
+}
+
+.layover-duration-filter,
+.connecting-airports-filter {
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.layover-duration-filter > p {
+  color: gray;
+}
+
+
+.times-filter, 
+.total-duration-filter {
   padding-left: 20px;
   padding-right: 20px;
   min-width: 250px;
@@ -117,6 +163,10 @@
 
 .time-slider {
   margin-bottom: 30px;
+}
+
+.time-slider-layover {
+  margin-bottom: 0px;
 }
 
 .times-filter > p {

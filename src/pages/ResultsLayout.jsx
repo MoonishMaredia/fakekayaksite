@@ -3,6 +3,7 @@ import { Box, Typography, Paper, useMediaQuery, useTheme, Chip } from '@mui/mate
 import TripOptionsBar from '../components/TripOptionsBar';
 import FlightSearchBar from '../components/FlightSearchBar';
 import FilterComponent from '../components/Filters';
+import HeaderLayout from '../components/HeaderLayout';
 
 const FlightResultsPage = () => {
   const [tripType, setTripType] = useState('Round-trip');
@@ -14,14 +15,20 @@ const FlightResultsPage = () => {
   const [seatType, setSeatType] = useState('Economy');
   const [carryOnBags, setCarryOnBags] = useState(0);
   const [checkedBags, setCheckedBags] = useState(0);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const handleChatOpen = () => setIsChatOpen(true);
+  const handleChatClose = () => setIsChatOpen(false);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   return (
+    <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column'}}>
+      <HeaderLayout onChatOpen={handleChatOpen} />
     <Box sx={{ 
       p: 2, 
-      width: isMobile ? '90vw' : '70vw', 
+      width: isMobile ? '90vw' : '100%', 
+      maxWidth: '1400px',
       margin: '20px auto', 
       display: 'flex', 
       flexDirection: 'column', 
@@ -38,6 +45,7 @@ const FlightResultsPage = () => {
         setCarryOnBags={setCarryOnBags}
         checkedBags={checkedBags}
         setCheckedBags={setCheckedBags}
+        isMobile={isMobile}
       />
       <FlightSearchBar 
         isMobile={isMobile}
@@ -52,7 +60,9 @@ const FlightResultsPage = () => {
         setReturnDate={setReturnDate}
       />
         <FilterComponent/>
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', 
+          maxWidth: isMobile ? '100%' : '82%',
+          gap: 2 }}>
         <Typography variant="h6" sx={{ mb: 1 }}>Best departing flights</Typography>
         {[1, 2, 3].map((flight) => (
           <Paper key={flight} sx={{ p: 2 }}>
@@ -60,6 +70,7 @@ const FlightResultsPage = () => {
           </Paper>
         ))}
       </Box>
+    </Box>
     </Box>
   );
 };

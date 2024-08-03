@@ -22,6 +22,13 @@ const customStyles = {
     '& .MuiInputBase-input': {
         cursor: 'pointer', // Ensures cursor changes to pointer inside the input
     },
+    '& .MuiSelect-select': {
+      paddingRight: '0px !important', // Force remove right padding
+      paddingLeft: '5px', // Adjust as needed for left padding
+    },
+    '& .MuiSelect-icon': {
+      right: '8px', // Adjust as needed to position the icon
+    },
   };
 
 const TripOptionsBar = ({ 
@@ -29,7 +36,8 @@ const TripOptionsBar = ({
   passengers, setPassengers, 
   seatType, setSeatType, 
   carryOnBags, setCarryOnBags, 
-  checkedBags, setCheckedBags 
+  checkedBags, setCheckedBags,
+  isMobile 
 }) => {
   const [passengerAnchorEl, setPassengerAnchorEl] = useState(null);
   const [bagAnchorEl, setBagAnchorEl] = useState(null);
@@ -55,10 +63,13 @@ const TripOptionsBar = ({
   const totalBags = carryOnBags + checkedBags;
 
   return (
-    <Box sx={{ display: 'flex', gap: 0, width: '50%' }}>
+    <Box sx={{ display: 'flex', gap: 0, width: isMobile ? '100%' : '70%'}}>
       <TextField
         size="small"
-        sx={{...customStyles, cursor:"pointer", width: '33%'}}
+        sx={{...customStyles, 
+          cursor:"pointer", 
+          width: isMobile ? '40%' : '20%',
+          }}
         select
         value={tripType}
         onChange={(e) => setTripType(e.target.value)}
@@ -70,9 +81,14 @@ const TripOptionsBar = ({
           ),
           style: { fontSize: '0.875em' },
           readOnly: false,
+          inputProps: {
+            style: {
+              paddingRight: '0px', // Adjust as needed to reduce space
+            }
+          },
         }}
         SelectProps={{
-          IconComponent: () => <ArrowDropDown sx={{paddingRight: "10px", color:"gray"}} fontSize="small" />,
+          IconComponent: () => <ArrowDropDown sx={{ color:"gray"}} fontSize="small" />,
         }}
       >
         <MenuItem value="Round-trip">Round trip</MenuItem>
@@ -80,8 +96,10 @@ const TripOptionsBar = ({
       </TextField>
       <TextField
         size="small"
-        sx={{...customStyles, width:"33%", cursor:"pointer"}}
-        value={`${passengers} passenger${passengers > 1 ? 's' : ''}, ${seatType}`}
+        sx={{...customStyles, 
+          width: isMobile ? '30%' : '15%', 
+          cursor:"pointer"}}
+        value={`${passengers}`}
         onClick={handlePassengerClick}
         InputProps={{
           startAdornment: <Person fontSize="small" sx={{ mr: 1 }} />,
@@ -96,8 +114,10 @@ const TripOptionsBar = ({
       />
       <TextField
         size="small"
-        sx={{...customStyles, width:"33%", cursor:"pointer"}}
-        value={`${totalBags} bag${totalBags !== 1 ? 's' : ''}`}
+        sx={{...customStyles, 
+          width: isMobile ? '30%' : '15%',  
+          cursor:"pointer"}}
+        value={`${totalBags}`}
         onClick={handleBagClick}
         InputProps={{
           startAdornment: <LuggageOutlined sx={{ mr: 1 }} />,

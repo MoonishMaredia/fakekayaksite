@@ -25,7 +25,7 @@ const FlightSearchBar = ({
         display: 'flex', 
         flexDirection: isMobile ? 'column' : 'row',
         gap: 2,
-        '& > *': { width: isMobile ? '100%' : '25%' }
+        '& > *': { width: isMobile ? '100%' : '25%' },
       }}
     >
       <Box>
