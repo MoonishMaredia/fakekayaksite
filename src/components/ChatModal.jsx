@@ -76,11 +76,11 @@ const ChatModal = ({
     } else if(field === "num_passengers" && (![1, 2, 3, 4, 5].includes(parsed))) {
       setFieldErrors({ ...fieldErrors, [field]: "#ERROR: Provided value should be between 1 and 10"});
       return {"msg":400}
-    } else if(field === "num_carryOn" && (![1, 2, 3, 4, 5].includes(parsed))) {
+    } else if(field === "num_carryOn" && (![0, 1].includes(parsed))) {
       setFieldErrors({...fieldErrors, [field]: "#ERROR: Provided value should be one of 0,1"});
       return {"msg":400}
-    } else if(field === "num_checked" && (![1, 2, 3, 4, 5].includes(parsed))) {
-      setFieldErrors({ ...fieldErrors, [field]: "#ERROR: Provided value should be one of 0,1,2,3,4,5"});
+    } else if(field === "num_checked" && (![0, 1, 2, 3].includes(parsed))) {
+      setFieldErrors({ ...fieldErrors, [field]: "#ERROR: Provided value should be one of 0,1,2,3"});
       return {"msg":400}
     } else {
       setFieldErrors({...fieldErrors, [field]: ""})

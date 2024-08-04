@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Box,
   Card,
@@ -9,6 +9,7 @@ import {
   Divider,
   Stack,
   Button,
+  Grid
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -16,105 +17,181 @@ import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 import WarningIcon from '@mui/icons-material/Warning';
 import AirlineSeatReclineNormalIcon from '@mui/icons-material/AirlineSeatReclineNormal';
 
-const FlightCard = ({ isMobile }) => {
-  const [expanded, setExpanded] = useState(false);
+const FlightCard = ({ isMobile, flightData }) => {
 
+  const [expanded, setExpanded] = useState(false);
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
 
+  const formatTime = (dateString) => {
+    const date = new Date(dateString);
+    const options = { hour: 'numeric', minute: 'numeric', hour12: true };
+    return date.toLocaleTimeString('en-US', options);
+  };
+
+  const memoizedStartTime = useMemo(() => formatTime(flightData['start_time']), [flightData]);
+  const memoizedEndTime = useMemo(() => formatTime(flightData['end_time']), [flightData]);
+
+  const formatDuration = (durationMinutes, short=false) => {
+    const hours = Math.floor(durationMinutes / 60)
+    const minutes = durationMinutes % 60
+    if(short) {
+      return `${hours} hr ${minutes} min`
+    } else {
+      return `${hours} hours ${minutes} min`
+    }
+  }
+
+  const memoizedDuration = useMemo(()=>formatDuration(flightData['total_duration']), [flightData])
+
+  const getStopsText = () => {
+    if(flightData['num_stops']===0) {
+      return ""
+    } else if(flightData['num_stops']===1) {
+      return `${formatDuration(flightData['layover'][0]['duration'], true)} in ${flightData['layover'][0]['id']}`
+    } else if(flightData['num_stops']>1) {
+      return flightData['layover'].reduce((a,b)=> a + b.id + ", ", "").slice(0,-2)
+  }
+}
+
+const stopsDetailText = useMemo(()=>getStopsText(), [flightData])
+
+
+  // Carry-on fees data
+  const carryOnFees = {
+    Spirit: [50]
+  };
+
+  // Checked fees data
+  const checkedFees = {
+    Alaska: [35, 45, 150],
+    American: [35, 45, 150],
+    Delta: [35, 45, 150],
+    Frontier: [70, 90, 100],
+    Hawaiian: [25, 40, 100],
+    JetBlue: [40, 60, 125],
+    Southwest: [0, 0, 125],
+    Spirit: [55, 80, 90]
+  };
+
+  // Function to get carry-on fees
+  const getCarryFees = (airline, numBags) => {
+    if (carryOnFees.hasOwnProperty(airline)) {
+      return carryOnFees[airline][0] * numBags;
+    } else {
+      return 0;
+    }
+  };
+
+  // Function to get checked fees
+  const getCheckedFees = (airline, numBags) => {
+    if (checkedFees.hasOwnProperty(airline)) {
+      return checkedFees[airline].slice(0, numBags).reduce((a, b) => a + b, 0);
+    } else {
+      return checkedFees['American'].slice(0, numBags).reduce((a, b) => a + b, 0);
+    }
+  };
+
+  const checkedBagFees = React.useMemo(()=>getCheckedFees(flightData['airline'], 1,[flightData]))
+  const carryOnBagFees = React.useMemo(()=>getCarryFees(flightData['airline'], 1,[flightData]))
+
   return (
-    <Card sx={{}}>
+    <Card>
       <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
         {isMobile ? (
           // Mobile view
-          <Box display="flex" sx={{minHeight:"100px"}} justifyContent="space-between" alignItems="center">
-            <Box>
+          <Grid container spacing={1} alignItems="center">
+            <Grid item xs={8}>
               <Typography variant="h8" sx={{fontSize:"14px"}} fontWeight="medium">
-                11:17AM → 3:45PM
+                {`${memoizedStartTime} → ${memoizedEndTime}`}
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 IAH
               </Typography>
               <Box display="flex" alignItems="center" mt={1}>
-                <FlightTakeoffIcon color="primary" sx={{ mr: 1, fontSize: 20 }} />
+                <img style={{ marginRight: "5px" }} src={flightData['airline_logo']} width="25px" />
                 <Box display="flex" flexDirection="column" ml={1}>
                   <Typography sx={{fontSize:"12px"}} variant="body2">
                     1 stop in DEN
                   </Typography>
                   <Typography sx={{fontSize:"12px"}} variant="body2">
-                    Frontier
+                    {flightData['airline']}
                   </Typography>
                 </Box>
               </Box>
-            </Box>
-            <Box textAlign="right">
-              <Typography sx={{fontSize:'14px'}} variant="h8" fontWeight="medium">
-                $153 <Typography sx={{display:"inline", fontSize:'14px'}}> / total round trip</Typography>
-              </Typography>
-              <Typography variant="body2" sx={{fontSize:'10px'}} color="text.secondary">
-                Trip Cost: $145, Bag Fees: $8
+            </Grid>
+            <Grid item xs={4}>
+              <Box textAlign="right">
+                <Typography sx={{fontSize:'14px'}} variant="h8" fontWeight="medium">
+                  ${flightData['trip_cost']}
+                </Typography>
+                <Typography sx={{display:"inline", fontSize:'12px'}}> / round trip</Typography>
+                <Typography variant="body2" sx={{fontSize:'10px'}} color="text.secondary">
+                  Trip Cost: ${flightData['trip_cost']}, Bag Fees: ${carryOnBagFees + checkedBagFees}
+                </Typography>
+                <IconButton
+                  onClick={handleExpandClick}
+                  aria-expanded={expanded}
+                  aria-label="show more"
+                  size="small"
+                  sx={{mt:1}}
+                >
+                  {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                </IconButton>
+              </Box>
+            </Grid>
+          </Grid>
+        ) : (
+          // Desktop view
+          <Grid container spacing={2} alignItems="center">
+            <Grid item xs={3}>
+              <Box display="flex" alignItems="center">
+                <img style={{ marginRight: "10px" }} src={flightData['airline_logo']} width="25px" />
+                <Box>
+                  <Typography variant="subtitle1" fontWeight="medium">
+                    {`${memoizedStartTime} → ${memoizedEndTime}`}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {flightData['airline']}
+                  </Typography>
+                </Box>
+              </Box>
+            </Grid>
+            <Grid item xs={2}>
+              <Typography variant="subtitle1" fontWeight="medium">
+                {memoizedDuration}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                
+                MIA–JFK
               </Typography>
+            </Grid>
+            <Grid item xs={2}>
+              <Typography variant="subtitle1" fontWeight="medium">
+                {flightData['num_stops']===0 ? "Nonstop" : `${flightData['num_stops']} stop`}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {stopsDetailText}
+              </Typography>
+            </Grid>
+            <Grid item xs={4}>
+              <Typography variant="h6" fontWeight="bold">
+                ${flightData['trip_cost'] + carryOnBagFees + checkedBagFees} <Typography sx={{display:"inline"}}> / total round trip</Typography>
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Trip Cost: ${flightData['trip_cost']}, Bag Fees: ${carryOnBagFees + checkedBagFees}
+              </Typography>
+            </Grid>
+            <Grid item xs={1}>
               <IconButton
                 onClick={handleExpandClick}
                 aria-expanded={expanded}
                 aria-label="show more"
-                size="small"
-                sx={{mt:2}}
               >
                 {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
               </IconButton>
-            </Box>
-          </Box>
-        ) : (
-          // Desktop view
-          <Box display="flex" justifyContent="space-between" alignItems="center">
-            <Box display="flex" alignItems="center">
-              <FlightTakeoffIcon color="primary" sx={{ mr: 1 }} />
-              <Box>
-                <Typography variant="subtitle1" fontWeight="medium">
-                  11:17 AM – 3:45 PM
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Frontier
-                </Typography>
-              </Box>
-            </Box>
-            <Box textAlign="center">
-              <Typography variant="subtitle1" fontWeight="medium">
-                6 hr 28 min
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                IAH–PHX
-              </Typography>
-            </Box>
-            <Box textAlign="center">
-              <Typography variant="subtitle1" fontWeight="medium">
-                1 stop
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                1 hr 59 min DEN
-              </Typography>
-            </Box>
-            <Box textAlign="right">
-              <Typography variant="h6" fontWeight="bold">
-                $153 <Typography sx={{display:"inline"}}> / total round trip</Typography>
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Trip Cost: $145, Bag Fees: $8
-              </Typography>
-            </Box>
-            <IconButton
-              onClick={handleExpandClick}
-              aria-expanded={expanded}
-              aria-label="show more"
-            >
-              {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-            </IconButton>
-          </Box>
+            </Grid>
+          </Grid>
         )}
       </CardContent>
       
