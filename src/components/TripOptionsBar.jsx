@@ -91,7 +91,7 @@ const TripOptionsBar = ({
           IconComponent: () => <ArrowDropDown sx={{ color:"gray"}} fontSize="small" />,
         }}
       >
-        <MenuItem value="Round-trip">Round trip</MenuItem>
+        <MenuItem value="Round-trip">Round-trip</MenuItem>
         <MenuItem value="One-way">One way</MenuItem>
       </TextField>
       <TextField

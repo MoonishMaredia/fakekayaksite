@@ -13,6 +13,9 @@ import { makeGPTRequests } from '../utils/api';
 import { getLandingChatHTML, getLandingChatMessage } from '../utils/other';
 import {airpotCodes} from '../airportcodes.js'
 import { useNavigate } from 'react-router-dom';
+import { useInput } from './InputContext'
+import { useResults } from './ResultsContext'
+
 
 const ChatModal = ({ 
     open, onClose, setLoading,
@@ -28,6 +31,8 @@ const ChatModal = ({
   }) => {
 
   const navigate = useNavigate();
+  const {searchInputs, setSearchInputs} = useInput({});
+  const {results, setResults} = useResults({});
   const [aiMessages, setAIMessages] = useState([getLandingChatMessage()])
   const [messages, setMessages] = useState([{sender: 'ai', text: getLandingChatHTML()}]);
   const theme = useTheme();
@@ -48,8 +53,11 @@ const ChatModal = ({
 
   async function handleSubmit() {
     onClose()
+    setSearchInputs(getCompletedObject())
     setLoading(true)
     await sleep(7000)
+    // set later once api is live
+    // setResults(flightResults)
     navigate('/results')
   }
 

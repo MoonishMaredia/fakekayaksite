@@ -6,20 +6,26 @@ import FilterComponent from '../components/Filters';
 import FlightCard from '../components/FlightCard';
 import HeaderLayout from '../components/HeaderLayout';
 import {flightDataArray} from '../utils/testResultsData.js'
+import {useInput} from '../components/InputContext.js'
 
 const FlightResultsPage = () => {
-  const [tripType, setTripType] = useState('Round-trip');
-  const [flyingFrom, setFlyingFrom] = useState('');
-  const [flyingTo, setFlyingTo] = useState('');
-  const [startDate, setStartDate] = useState(null);
-  const [returnDate, setReturnDate] = useState(null);
-  const [passengers, setPassengers] = useState(1);
-  const [seatType, setSeatType] = useState('Economy');
-  const [carryOnBags, setCarryOnBags] = useState(0);
-  const [checkedBags, setCheckedBags] = useState(0);
+
+  const {searchInputs, setSearchInputs} = useInput({})
+
+  const [tripType, setTripType] = useState(searchInputs['trip_type']);
+  const [flyingFrom, setFlyingFrom] = useState(searchInputs['flying_from']);
+  const [flyingTo, setFlyingTo] = useState(searchInputs['flying_to']);
+  const [startDate, setStartDate] = useState(searchInputs['start_date']);
+  const [returnDate, setReturnDate] = useState(searchInputs['return_date']);
+  const [passengers, setPassengers] = useState(searchInputs['num_passengers']);
+  const [seatType, setSeatType] = useState(searchInputs['seat_type']);
+  const [carryOnBags, setCarryOnBags] = useState(searchInputs['num_carryOn']);
+  const [checkedBags, setCheckedBags] = useState(searchInputs['num_checked']);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const handleChatOpen = () => setIsChatOpen(true);
   const handleChatClose = () => setIsChatOpen(false);
+
+  console.log(searchInputs)
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -65,10 +71,10 @@ const FlightResultsPage = () => {
       <Box sx={{ display: 'flex', flexDirection: 'column', 
           maxWidth: isMobile ? '100%' : '82%',
           gap: 2 }}>
-        <Typography variant="h6" sx={{ mb: 1 }}>Best departing flights</Typography>
-        {flightDataArray.map((flight) => (
+        <Typography variant="h6" sx={{ mb: 1 }}>Select a Departing Flight</Typography>
+        {flightDataArray.map((flight, index) => (
             <FlightCard
-              key={flight}
+              key={index}
               isMobile={isMobile}
               flightData={flight}
             />

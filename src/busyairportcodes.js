@@ -22,7 +22,7 @@ export const airportCodes = {
     'name': 'Phoenix Sky Harbor International Airport'},
    'IAH': {'city': 'Houston',
     'name': 'Houston, George Bush Intercontinental Airport'},
-   'BOS': {'city': 'Boston', 'name': 'Boston, Logan International Airport'},
+   'BOS': {'city': 'Boston', 'name': 'Logan International Airport'},
    'FLL': {'city': 'Fort Lauderdale',
     'name': 'Fort Lauderdale-Hollywood International Airport'},
    'MSP': {'city': 'Minneapolis/St.Paul',

@@ -228,7 +228,7 @@ const SearchForm = ({
             <Typography sx={{ mx: 2 }}>Checked bag</Typography>
             <IconButton onClick={() => setCheckedBags(Math.max(0, checkedBags - 1))}>-</IconButton>
             <Typography sx={{ mx: 2 }}>{checkedBags}</Typography>
-            <IconButton onClick={() => setCheckedBags(Math.min(5, checkedBags + 1))}>+</IconButton>
+            <IconButton onClick={() => setCheckedBags(Math.min(3, checkedBags + 1))}>+</IconButton>
           </Box>
         </Box>
       </Popover>

@@ -1,18 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Autocomplete, TextField } from '@mui/material';
-import { FlightTakeoff } from '@mui/icons-material';
-import {FlightLand} from '@mui/icons-material';
+import { FlightTakeoff, FlightLand } from '@mui/icons-material';
+import { airportCodes } from '../busyairportcodes.js';
 import { airportCodesArray } from '../busyairportcodes.js';
+import { useInput } from './InputContext.js'
 
-const AirportAutocomplete = ({ inputValue, setInputValue, placeholderText, takeOff }) => {
-  const [value, setValue] = useState(null);
+const AirportAutocomplete = ({ placeholderText, takeOff }) => {
+  const { searchInputs, setSearchInputs } = useInput({})
+  const [inputValue, setInputValue] = useState('')
+  const [value, setValue] = useState(null)
+
+  useEffect(() => {
+    const initialValue = takeOff ? searchInputs['flying_from'] : searchInputs['flying_to']
+    if (initialValue) {
+      setInputValue(airportCodes[initialValue]?.name || '')
+      setValue(airportCodesArray.find(option => option.key === initialValue) || null)
+    }
+  }, [takeOff, searchInputs])
+
+  const handleInputChange = (event, newInputValue) => {
+    setInputValue(newInputValue)
+  }
+
+  const handleChange = (event, newValue) => {
+    setValue(newValue)
+    if (newValue) {
+      setSearchInputs(prev => ({
+        ...prev,
+        [takeOff ? 'flying_from' : 'flying_to']: newValue.key
+      }))
+    }
+  }
 
   return (
     <Autocomplete
       value={value}
-      onChange={(event, newValue) => setValue(newValue)}
+      onChange={handleChange}
       inputValue={inputValue}
-      onInputChange={(event, newInputValue) => setInputValue(newInputValue)}
+      onInputChange={handleInputChange}
       options={airportCodesArray}
       filterOptions={(options, state) =>
         options.filter(option => 
