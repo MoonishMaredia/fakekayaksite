@@ -7,6 +7,13 @@ import '../FilterComponent.css'; // We'll create this CSS file for styling
 import { useResults } from './ResultsContext';
 import {airportCodes} from '../busyairportcodes.js'
 import { flightDataArray } from '../utils/testResultsData';
+import PriceFilter from './filters/PriceFilter';
+import StopsFilter from './filters/StopsFilter';
+import AirlinesFilter from './filters/AirlinesFilter';
+import TimesFilter from './filters/TimesFilter';
+import ConnectingAirportsFilter from './filters/ConnectingAirportsFilter';
+import LayoverDurationFilter from './filters/LayoverDurationFilter';
+import TotalDurationFilter from './filters/TotalDurationFilter';
 
 const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
 
@@ -22,7 +29,7 @@ const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
     return acc;
   }, {})}, [results['data']]);
 
-  const [airlinesFilter, setAirlinesFilter] = useState({"airlines": airlinesFilterOptions});
+  const [airlinesFilter, setAirlinesFilter] = useState(airlinesFilterOptions);
   const [isAirlineFilterUpdated, setIsAirlineFilterUpdated] = useState(false)
 
   const allConnectingAirports = useMemo(() => {
@@ -89,7 +96,6 @@ const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
 
   const [totalDuration, setTotalDuration] = useState([0, maxDuration]);
   const [openFilter, setOpenFilter] = useState(null);
-
   const popoverRef = useRef(null);
   const filterButtonRefs = useRef({});
 
@@ -120,8 +126,7 @@ const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
       case 'Airlines':
         return <AirlinesFilter 
         airlines={airlinesFilter} 
-        setAirlines={setAirlinesFilter} 
-        setIsAirlineFilterUpdated={setIsAirlineFilterUpdated}/>;
+        setAirlines={setAirlinesFilter} />;
       case 'Times':
         return <TimesFilter timeFilter={timeFilter} setTimeFilter={setTimeFilter} />;
       case 'Connecting airports':
@@ -171,68 +176,118 @@ const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
 
     let newFlights = results['data']
 
-    const areAllAirlinesSelected = Object.values(airlinesFilter['airlines']).every((selected) => selected);
-    if(!areAllAirlinesSelected) {
-      const selectedAirlines = Object.keys(airlinesFilter['airlines']).filter((airline) => airlinesFilter['airlines'][airline])
-      newFlights = newFlights.filter(flight=>selectedAirlines.includes(flight.airline))
+    const areAllAirlinesSelected = Object.values(airlinesFilter).every(selected => selected);
+
+    if (!areAllAirlinesSelected) {
+      const selectedAirlines = Object.keys(airlinesFilter).filter(airline => airlinesFilter[airline]);
+      newFlights = newFlights.filter(flight => selectedAirlines.includes(flight.airline));
     }
 
-    if(stopsFilter!==100) {
-      newFlights = newFlights.filter(flight=>flight.num_stops <= stopsFilter)
+    if (stopsFilter !== 100) {
+      newFlights = newFlights.filter(flight => flight.num_stops <= stopsFilter);
     }
 
-    if(priceFilter!==maxPrice) {
-      newFlights = newFlights.filter(flight=> flight.trip_cost <= priceFilter)
+    if (priceFilter !== maxPrice) {
+      newFlights = newFlights.filter(flight => flight.trip_cost <= priceFilter);
     }
 
-    if(timeFilter['departure'][0] !==0 || timeFilter['departure'][1]!==24) {
-      const lowerBound = timeFilter['departure'][0]
-      const upperBound = timeFilter['departure'][1]
-      newFlights = newFlights.filter(flight => ((flight.start_time_hours >= lowerBound) && (flight.start_time_hours<=upperBound)))
+    if (timeFilter['departure'][0] !== 0 || timeFilter['departure'][1] !== 24) {
+      const [lowerBound, upperBound] = timeFilter['departure'];
+      newFlights = newFlights.filter(flight => flight.start_time_hours >= lowerBound && flight.start_time_hours <= upperBound);
     }
 
-    if(timeFilter['arrival'][0] !==0 || timeFilter['arrival'][1]!==24) {
-      const lowerBound = timeFilter['arrival'][0]
-      const upperBound = timeFilter['arrival'][1]
-      newFlights = newFlights.filter(flight => (flight.end_time_hours >= lowerBound) && (flight.end_time_hours<=upperBound))
+    if (timeFilter['arrival'][0] !== 0 || timeFilter['arrival'][1] !== 24) {
+      const [lowerBound, upperBound] = timeFilter['arrival'];
+      newFlights = newFlights.filter(flight => flight.end_time_hours >= lowerBound && flight.end_time_hours <= upperBound);
     }
 
-    if(totalDuration[0]!==0 || totalDuration[1]!==maxDuration) {
-      const lowerBound = totalDuration[0]
-      const upperBound = totalDuration[1]
-      newFlights = newFlights.filter(flight=>(flight.total_duration/60 >= lowerBound) && (flight.total_duration/60 <=upperBound))
-    }
+    // const areAllAirlinesSelected = Object.values(airlinesFilter['airlines']).every((selected) => selected);
+    // if(!areAllAirlinesSelected) {
+    //   const selectedAirlines = Object.keys(airlinesFilter['airlines']).filter((airline) => airlinesFilter['airlines'][airline])
+    //   newFlights = newFlights.filter(flight=>selectedAirlines.includes(flight.airline))
+    // }
 
-    if(layoverDuration[0]!==0 || layoverDuration[1]!==maxLayoverDuration) {
-      const lowerBound = layoverDuration[0]
-      const upperBound = layoverDuration[1]
-      newFlights = newFlights.filter(flight=> {
-        if(flight.layover===null) {
-          return true
-        } else {
-          const allMatch = flight.layover.every((layover=>((layover.duration/60 >= lowerBound ) && (layover.duration/60 <= upperBound))))
-          return allMatch
-        }
-      })
-    }
+    // if(stopsFilter!==100) {
+    //   newFlights = newFlights.filter(flight=>flight.num_stops <= stopsFilter)
+    // }
 
-    console.log(connectingAirports)
-    const areAllConnectionsSelected = connectingAirports.every((airport) => airport.checked);
-    console.log(areAllConnectionsSelected)
-    if(!areAllConnectionsSelected) {
-      const UnselectedConnections = connectingAirports
-        .filter((airport) => !airport.checked)
-        .reduce((acc, curr)=>[...acc, curr.id], [])
-        console.log(UnselectedConnections)
+    // if(priceFilter!==maxPrice) {
+    //   newFlights = newFlights.filter(flight=> flight.trip_cost <= priceFilter)
+    // }
+
+    // if(timeFilter['departure'][0] !==0 || timeFilter['departure'][1]!==24) {
+    //   const lowerBound = timeFilter['departure'][0]
+    //   const upperBound = timeFilter['departure'][1]
+    //   newFlights = newFlights.filter(flight => ((flight.start_time_hours >= lowerBound) && (flight.start_time_hours<=upperBound)))
+    // }
+
+    // if(timeFilter['arrival'][0] !==0 || timeFilter['arrival'][1]!==24) {
+    //   const lowerBound = timeFilter['arrival'][0]
+    //   const upperBound = timeFilter['arrival'][1]
+    //   newFlights = newFlights.filter(flight => (flight.end_time_hours >= lowerBound) && (flight.end_time_hours<=upperBound))
+    // }
+
+    if (totalDuration[0] !== 0 || totalDuration[1] !== maxDuration) {
+      const [lowerBound, upperBound] = totalDuration;
       newFlights = newFlights.filter(flight => {
-        if(flight.layover===null) {
-          return true
-        } else {
-          return !flight.layover.some(layover => {
-            return UnselectedConnections.includes(layover.id)
+        const durationInHours = flight.total_duration / 60;
+        return durationInHours >= lowerBound && durationInHours <= upperBound;
+      });
+    }
+    
+    if (layoverDuration[0] !== 0 || layoverDuration[1] !== maxLayoverDuration) {
+      const [lowerBound, upperBound] = layoverDuration;
+      newFlights = newFlights.filter(flight => 
+        flight.layover === null || flight.layover.every(layover => {
+          const durationInHours = layover.duration / 60;
+          return durationInHours >= lowerBound && durationInHours <= upperBound;
         })
-      }
-    })}
+      );
+    }
+
+    // if(totalDuration[0]!==0 || totalDuration[1]!==maxDuration) {
+    //   const lowerBound = totalDuration[0]
+    //   const upperBound = totalDuration[1]
+    //   newFlights = newFlights.filter(flight=>(flight.total_duration/60 >= lowerBound) && (flight.total_duration/60 <=upperBound))
+    // }
+
+    // if(layoverDuration[0]!==0 || layoverDuration[1]!==maxLayoverDuration) {
+    //   const lowerBound = layoverDuration[0]
+    //   const upperBound = layoverDuration[1]
+    //   newFlights = newFlights.filter(flight=> {
+    //     if(flight.layover===null) {
+    //       return true
+    //     } else {
+    //       const allMatch = flight.layover.every((layover=>((layover.duration/60 >= layoverDuration[0] ) && (layover.duration/60 <= layoverDuration[1]))))
+    //       return allMatch
+    //     }
+    //   })
+    // }
+
+    // const areAllConnectionsSelected = connectingAirports.every((airport) => airport.checked);
+    // if(!areAllConnectionsSelected) {
+    //   const UnselectedConnections = connectingAirports
+    //     .filter((airport) => !airport.checked)
+    //     .reduce((acc, curr)=>[...acc, curr.id], [])
+    //   newFlights = newFlights.filter(flight => {
+    //     if(flight.layover===null) {
+    //       return true
+    //     } else {
+    //       return !flight.layover.some(layover => {
+    //         return UnselectedConnections.includes(layover.id)
+    //     })
+    //   }
+    // })}
+
+    const areAllConnectionsSelected = connectingAirports.every(airport => airport.checked);
+    if (!areAllConnectionsSelected) {
+      const unselectedConnections = connectingAirports
+        .filter(airport => !airport.checked)
+        .map(airport => airport.id);
+      newFlights = newFlights.filter(flight => 
+        flight.layover === null || !flight.layover.some(layover => unselectedConnections.includes(layover.id))
+      );
+    }
 
     setDisplayedFlights(newFlights)
 
@@ -273,235 +328,5 @@ const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
   );
 };
 
-const PriceFilter = React.memo(({ price, setPrice, maxPrice }) => {
-  return (
-    <div className="price-filter">
-      <p>Up to ${price}</p>
-      <input
-        type="range"
-        min="0"
-        max={maxPrice}
-        value={price}
-        step={10}
-        onChange={(e) => setPrice(Number(e.target.value))}
-      />
-    </div>
-  );
-});
-
-const StopsFilter = React.memo(({ stops, setStops }) => {
-  return (
-    <div className="stops-filter">
-      {[100, 0, 1, 2].map((option) => (
-        <label key={option}>
-          <input
-            type="checkbox"
-            value={option}
-            checked={stops === option}
-            onChange={(e) => setStops(Number(e.target.value))}
-          />
-          {option === 100 ? 'Any number of stops' :
-           option === 0 ? 'Nonstop only' :
-           option === 1 ? '1 stop or fewer' : '2 stops or fewer'}
-        </label>
-      ))}
-    </div>
-  );
-});
-
-const AirlinesFilter = React.memo(({ airlines, setAirlines, setIsAirlineFilterUpdated }) => {
-  const handleChange = useCallback((category, item) => {
-    setAirlines(prev => ({
-      [category]: {
-        ...prev[category],
-        [item]: !prev[category][item],
-      },
-    }))
-
-  }, [setAirlines]);
-
-  return (
-    <div className="airlines-filter">
-      {Object.keys(airlines.airlines).map((airline) => (
-        <label key={airline}>
-          <input
-            type="checkbox"
-            checked={airlines.airlines[airline]}
-            onChange={() => handleChange('airlines', airline)}
-          />
-          {airline}
-        </label>
-      ))}
-    </div>
-  );
-});
-
-const TimesFilter = React.memo(({ timeFilter, setTimeFilter }) => {
-  const handleDepartureChange = (event, newValue) => {
-    setTimeFilter(prev => ({ ...prev, departure: newValue }));
-  };
-
-  const handleArrivalChange = (event, newValue) => {
-    setTimeFilter(prev => ({ ...prev, arrival: newValue }));
-  };
-
-  const formatTime = (time) => {
-    const hours = Math.floor(time);
-    const minutes = (time - hours) * 60;
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    const formattedHours = hours % 12 === 0 ? 12 : hours % 12;
-    const formattedMinutes = minutes === 0 ? '00' : minutes;
-    return `${formattedHours}:${formattedMinutes}${ampm}`;
-  };
-
-  return (
-    <div className="times-filter">
-      <p>Houston to Phoenix</p>
-      <div className="time-slider">
-        <div className="time-slider-header">
-            <FlightTakeoff />
-            <span>Departure - {formatTime(timeFilter.departure[0])} - {formatTime(timeFilter.departure[1])}</span>
-        </div>
-        <Slider
-            value={timeFilter.departure}
-            onChange={handleDepartureChange}
-            valueLabelDisplay="auto"
-            valueLabelFormat={formatTime}
-            min={0}
-            max={24}
-            step={1}
-            sx={{
-                '& .MuiSlider-thumb': {
-                width: 12, // Adjust the width of the slider thumb
-                height: 12, // Adjust the height of the slider thumb
-                },
-            }}
-        />
-      </div>
-      <div className="time-slider">
-        <div className="time-slider-header">
-            <FlightLand />
-            <span>Arrival - {formatTime(timeFilter.arrival[0])} - {formatTime(timeFilter.arrival[1])}</span>
-        </div>
-        <Slider
-            value={timeFilter.arrival}
-            onChange={handleArrivalChange}
-            valueLabelDisplay="auto"
-            valueLabelFormat={formatTime}
-            min={0}
-            max={24}
-            step={1}
-            sx={{
-                '& .MuiSlider-thumb': {
-                width: 12, // Adjust the width of the slider thumb
-                height: 12, // Adjust the height of the slider thumb
-                },
-            }}
-        />
-      </div>
-    </div>
-    );
-  });
-
-  const ConnectingAirportsFilter = React.memo(({ airports, onAirportSelect }) => {
-    // Assuming airports is an array of airport objects with id and name
-  
-    return (
-      <div className="connecting-airports-filter">
-        <p>Connecting Airports</p>
-        {/* List of airports with checkboxes */}
-        {airports.map((airport) => (
-          <label key={airport.id}>
-            <input type="checkbox" 
-              checked={airport.checked}
-              onChange={() => onAirportSelect(airport.id)} />
-            {airport.name} ({airport.id})
-          </label>
-        ))}
-      </div>
-    );
-  });
-
-  const LayoverDurationFilter = React.memo(({ duration, setDuration, maxLayoverDuration }) => {
-    const handleDurationChange = (event, newValue) => {
-      setDuration(newValue);
-    };
-  
-    const formatDuration = (duration) => {
-      const hours = Math.floor(duration);
-      const minutes = (duration - hours) * 60;
-      return `${hours}h ${minutes === 0 ? '' : `${minutes}m`}`;
-    };
-  
-    return (
-      <div className="layover-duration-filter">
-        <p>Layover Duration</p>
-        <div className="time-slider-layover">
-          <div className="time-slider-header">
-            <span>{formatDuration(duration[0])} - {formatDuration(duration[1])}</span>
-          </div>
-          <Slider
-            value={duration}
-            onChange={handleDurationChange}
-            valueLabelDisplay="auto"
-            valueLabelFormat={formatDuration}
-            min={0}
-            max={maxLayoverDuration}
-            step={0.5}
-            sx={{
-              '& .MuiSlider-thumb': {
-                width: 12, // Adjust the width of the slider thumb
-                height: 12, // Adjust the height of the slider thumb
-              },
-            }}
-          />
-          <div className="time-slider-header">
-            <span></span>
-          </div>
-        </div>
-      </div>
-    );
-  });
-
-  const TotalDurationFilter = React.memo(({ duration, setDuration, maxDuration }) => {
-    const handleDurationChange = (event, newValue) => {
-      setDuration(newValue);
-    };
-  
-    const formatDuration = (duration) => {
-      const hours = Math.floor(duration);
-      const minutes = (duration - hours) * 60;
-      return `${hours}h ${minutes === 0 ? '' : `${minutes}m`}`;
-    };
-  
-    return (
-      <div className="total-duration-filter">
-        <p>Total Travel Duration</p>
-        <div className="time-slider-total">
-          <div className="time-slider-header">
-            <span>{formatDuration(duration[0])} - {formatDuration(duration[1])}</span>
-          </div>
-          <Slider
-            value={duration}
-            onChange={handleDurationChange}
-            valueLabelDisplay="auto"
-            valueLabelFormat={formatDuration}
-            min={0}
-            max={maxDuration}
-            step={0.5}
-            sx={{
-              '& .MuiSlider-thumb': {
-                width: 12, // Adjust the width of the slider thumb
-                height: 12, // Adjust the height of the slider thumb
-              },
-            }}
-          />
-          <div className="time-slider-header">
-            <span></span>
-          </div>
-        </div>
-      </div>
-    );
-  });
 
 export default FilterComponent;
