@@ -44,16 +44,15 @@ const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
       return acc
   }, [])}, [results['data']]);
 
-  const [connectingAirports, setConnectingAirports] = useState();
+  const [connectingAirports, setConnectingAirports] = useState(connectingAirportsFilterOptions);
   const handleAirportSelect = (airportId) => {
     setConnectingAirports((prevAirports) => {
-      if (prevAirports.includes(airportId)) {
-        // Remove airport if already selected
-        return prevAirports.filter((id) => id !== airportId);
-      } else {
-        // Add airport to the list
-        return [...prevAirports, airportId];
-      }
+      return prevAirports.map(airport=> {
+        if(airport.id===airportId) {
+          airport.checked=!airport.checked
+        }
+        return airport
+      })
     });
   };
 
@@ -132,7 +131,7 @@ const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
                 duration={layoverDuration} 
                 setDuration={setLayoverDuration} 
                 maxLayoverDuration={maxLayoverDuration}/>
-                <ConnectingAirportsFilter airports={connectingAirportsFilterOptions} onAirportSelect={handleAirportSelect} />
+                <ConnectingAirportsFilter airports={connectingAirports} onAirportSelect={handleAirportSelect} />
             </div>);
       case 'Duration':
         return <TotalDurationFilter 
@@ -217,9 +216,27 @@ const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
       })
     }
 
+    console.log(connectingAirports)
+    const areAllConnectionsSelected = connectingAirports.every((airport) => airport.checked);
+    console.log(areAllConnectionsSelected)
+    if(!areAllConnectionsSelected) {
+      const UnselectedConnections = connectingAirports
+        .filter((airport) => !airport.checked)
+        .reduce((acc, curr)=>[...acc, curr.id], [])
+        console.log(UnselectedConnections)
+      newFlights = newFlights.filter(flight => {
+        if(flight.layover===null) {
+          return true
+        } else {
+          return !flight.layover.some(layover => {
+            return UnselectedConnections.includes(layover.id)
+        })
+      }
+    })}
+
     setDisplayedFlights(newFlights)
 
-  }, [airlinesFilter, stopsFilter, priceFilter, timeFilter, totalDuration, layoverDuration])  
+  }, [airlinesFilter, stopsFilter, priceFilter, timeFilter, totalDuration, connectingAirports, layoverDuration])  
 
   return (
     <div className="filter-component">
@@ -301,7 +318,6 @@ const AirlinesFilter = React.memo(({ airlines, setAirlines, setIsAirlineFilterUp
       },
     }))
 
-    setIsAirlineFilterUpdated(true);
   }, [setAirlines]);
 
   return (
