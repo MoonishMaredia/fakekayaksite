@@ -1,36 +1,50 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { Chip } from '@mui/material';
 import { Slider } from '@mui/material';
 import { FlightTakeoff } from '@mui/icons-material';
 import {FlightLand} from '@mui/icons-material';
 import '../FilterComponent.css'; // We'll create this CSS file for styling
+import { useResults } from './ResultsContext';
+import {airportCodes} from '../busyairportcodes.js'
+import { flightDataArray } from '../utils/testResultsData';
 
-const FilterComponent = () => {
-    const airportsData = [
-        { code: "JFK", name: "John F. Kennedy International Airport", checked: true },
-        { code: "LAX", name: "Los Angeles International Airport", checked: true },
-        { code: "ORD", name: "Chicago O'Hare International Airport", checked: true },
-        { code: "ATL", name: "Hartsfield-Jackson Atlanta International Airport", checked: true },
-        { code: "DFW", name: "Dallas/Fort Worth International Airport", checked: true },
-        { code: "LHR", name: "London Heathrow Airport", checked: true },
-        { code: "CDG", name: "Paris Charles de Gaulle Airport", checked: true },
-        { code: "HKG", name: "Hong Kong International Airport", checked: true },
-        { code: "SIN", name: "Singapore Changi Airport", checked: true },
-        { code: "SYD", name: "Sydney Airport", checked: true }
-        ];
-  const [priceFilter, setPriceFilter] = useState(2200);
-  const [stopsFilter, setStopsFilter] = useState('any');
-  const [airlinesFilter, setAirlinesFilter] = useState({
-    airlines: {
-      Alaska: true, American: true, Delta: true, Emirates: true,
-      Frontier: true, JetBlue: true, QatarAirways: true, United: true,
-    },
-  });
-  const [timeFilter, setTimeFilter] = useState({
-    departure: [0, 24],
-    arrival: [0, 24],
-  });
-  const [connectingAirports, setConnectingAirports] = useState([]);
+const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
+
+  const {results, setResults} = useResults({});
+
+  const allAirlines = useMemo(() => {
+    return Array.from(new Set(results['data'].map(flight => flight.airline)));
+  }, [results['data']]);
+
+  const airlinesFilterOptions =  useMemo(() => {
+    return allAirlines.reduce((acc, airline) => {
+    acc[airline] = true;  
+    return acc;
+  }, {})}, [results['data']]);
+
+  const [airlinesFilter, setAirlinesFilter] = useState({"airlines": airlinesFilterOptions});
+  const [isAirlineFilterUpdated, setIsAirlineFilterUpdated] = useState(false)
+
+  const allConnectingAirports = useMemo(() => {
+    return Array.from(new Set(
+      results['data']
+        .filter(flight => flight.layover !== null) // Filter out flights without layover
+        .flatMap(flight => flight.layover.map(layover => layover.id))
+    ));
+  }, [results['data']]);
+
+  const connectingAirportsFilterOptions =  useMemo(() => {
+    return allConnectingAirports.reduce((acc, id) => {
+      const add = {
+        'id': id,
+        'name': airportCodes[id].name,
+        'checked':true
+      }
+      acc.push(add)
+      return acc
+  }, [])}, [results['data']]);
+
+  const [connectingAirports, setConnectingAirports] = useState();
   const handleAirportSelect = (airportId) => {
     setConnectingAirports((prevAirports) => {
       if (prevAirports.includes(airportId)) {
@@ -42,9 +56,41 @@ const FilterComponent = () => {
       }
     });
   };
-  const [layoverDuration, setLayoverDuration] = useState([0, 24]);
-  const [totalDuration, setTotalDuration] = useState([0, 24])
+
+  const maxPrice = useMemo(() => {
+    return results['data'].reduce((acc,curr) => {
+      if (curr.trip_cost > acc) {
+        acc = curr.trip_cost}
+      return acc
+    }, [0])}, [results['data']])
+
+  const [priceFilter, setPriceFilter] = useState(maxPrice);
+  const [stopsFilter, setStopsFilter] = useState(100);
+  const [timeFilter, setTimeFilter] = useState({
+    departure: [0, 24],
+    arrival: [0, 24],
+  });
+
+  const maxLayoverDuration = useMemo(() => {
+    return results['data']
+        .filter(flight => flight.layover !== null) // Filter out flights without layover
+        .flatMap(flight => flight.layover.map(layover => layover.duration))
+        .reduce((acc, curr) => curr/60 > acc ? Math.ceil(curr/60) : acc, [0]);
+  }, [results['data']]);
+
+  const [layoverDuration, setLayoverDuration] = useState([0, maxLayoverDuration]);
+
+  const maxDuration = useMemo(() => {
+    return displayedFlights.reduce((acc,curr) => {
+      if (curr.total_duration / 60 > acc) {
+        acc = curr.total_duration / 60
+      }
+      return Math.ceil(acc)
+    }, [0])}, [results['data']])
+
+  const [totalDuration, setTotalDuration] = useState([0, maxDuration]);
   const [openFilter, setOpenFilter] = useState(null);
+
   const popoverRef = useRef(null);
   const filterButtonRefs = useRef({});
 
@@ -69,21 +115,30 @@ const FilterComponent = () => {
   const renderFilterContent = () => {
     switch (openFilter) {
       case 'Price':
-        return <PriceFilter price={priceFilter} setPrice={setPriceFilter} />;
+        return <PriceFilter price={priceFilter} setPrice={setPriceFilter} maxPrice={maxPrice} />;
       case 'Stops':
         return <StopsFilter stops={stopsFilter} setStops={setStopsFilter} />;
       case 'Airlines':
-        return <AirlinesFilter airlines={airlinesFilter} setAirlines={setAirlinesFilter} />;
+        return <AirlinesFilter 
+        airlines={airlinesFilter} 
+        setAirlines={setAirlinesFilter} 
+        setIsAirlineFilterUpdated={setIsAirlineFilterUpdated}/>;
       case 'Times':
         return <TimesFilter timeFilter={timeFilter} setTimeFilter={setTimeFilter} />;
       case 'Connecting airports':
         return (
             <div>
-                <LayoverDurationFilter duration={layoverDuration} setDuration={setLayoverDuration} />
-                <ConnectingAirportsFilter airports={airportsData} onAirportSelect={handleAirportSelect} />
+                <LayoverDurationFilter 
+                duration={layoverDuration} 
+                setDuration={setLayoverDuration} 
+                maxLayoverDuration={maxLayoverDuration}/>
+                <ConnectingAirportsFilter airports={connectingAirportsFilterOptions} onAirportSelect={handleAirportSelect} />
             </div>);
       case 'Duration':
-        return <TotalDurationFilter duration={totalDuration} setDuration={setTotalDuration} />;
+        return <TotalDurationFilter 
+          duration={totalDuration} 
+          setDuration={setTotalDuration}
+          maxDuration={maxDuration} />;
       default:
         return null;
     }
@@ -112,6 +167,59 @@ const FilterComponent = () => {
     }
     return {};
   };
+
+  useEffect(()=> {
+
+    let newFlights = results['data']
+
+    const areAllAirlinesSelected = Object.values(airlinesFilter['airlines']).every((selected) => selected);
+    if(!areAllAirlinesSelected) {
+      const selectedAirlines = Object.keys(airlinesFilter['airlines']).filter((airline) => airlinesFilter['airlines'][airline])
+      newFlights = newFlights.filter(flight=>selectedAirlines.includes(flight.airline))
+    }
+
+    if(stopsFilter!==100) {
+      newFlights = newFlights.filter(flight=>flight.num_stops <= stopsFilter)
+    }
+
+    if(priceFilter!==maxPrice) {
+      newFlights = newFlights.filter(flight=> flight.trip_cost <= priceFilter)
+    }
+
+    if(timeFilter['departure'][0] !==0 || timeFilter['departure'][1]!==24) {
+      const lowerBound = timeFilter['departure'][0]
+      const upperBound = timeFilter['departure'][1]
+      newFlights = newFlights.filter(flight => ((flight.start_time_hours >= lowerBound) && (flight.start_time_hours<=upperBound)))
+    }
+
+    if(timeFilter['arrival'][0] !==0 || timeFilter['arrival'][1]!==24) {
+      const lowerBound = timeFilter['arrival'][0]
+      const upperBound = timeFilter['arrival'][1]
+      newFlights = newFlights.filter(flight => (flight.end_time_hours >= lowerBound) && (flight.end_time_hours<=upperBound))
+    }
+
+    if(totalDuration[0]!==0 || totalDuration[1]!==maxDuration) {
+      const lowerBound = totalDuration[0]
+      const upperBound = totalDuration[1]
+      newFlights = newFlights.filter(flight=>(flight.total_duration/60 >= lowerBound) && (flight.total_duration/60 <=upperBound))
+    }
+
+    if(layoverDuration[0]!==0 || layoverDuration[1]!==maxLayoverDuration) {
+      const lowerBound = layoverDuration[0]
+      const upperBound = layoverDuration[1]
+      newFlights = newFlights.filter(flight=> {
+        if(flight.layover===null) {
+          return true
+        } else {
+          const allMatch = flight.layover.every((layover=>((layover.duration/60 >= lowerBound ) && (layover.duration/60 <= upperBound))))
+          return allMatch
+        }
+      })
+    }
+
+    setDisplayedFlights(newFlights)
+
+  }, [airlinesFilter, stopsFilter, priceFilter, timeFilter, totalDuration, layoverDuration])  
 
   return (
     <div className="filter-component">
@@ -148,16 +256,16 @@ const FilterComponent = () => {
   );
 };
 
-const PriceFilter = React.memo(({ price, setPrice }) => {
+const PriceFilter = React.memo(({ price, setPrice, maxPrice }) => {
   return (
     <div className="price-filter">
       <p>Up to ${price}</p>
       <input
         type="range"
         min="0"
-        max="2200"
+        max={maxPrice}
         value={price}
-        step={25}
+        step={10}
         onChange={(e) => setPrice(Number(e.target.value))}
       />
     </div>
@@ -167,32 +275,33 @@ const PriceFilter = React.memo(({ price, setPrice }) => {
 const StopsFilter = React.memo(({ stops, setStops }) => {
   return (
     <div className="stops-filter">
-      {['any', 'nonstop', '1stop', '2stops'].map((option) => (
+      {[100, 0, 1, 2].map((option) => (
         <label key={option}>
           <input
             type="checkbox"
             value={option}
             checked={stops === option}
-            onChange={(e) => setStops(e.target.value)}
+            onChange={(e) => setStops(Number(e.target.value))}
           />
-          {option === 'any' ? 'Any number of stops' : 
-           option === 'nonstop' ? 'Nonstop only' :
-           option === '1stop' ? '1 stop or fewer' : '2 stops or fewer'}
+          {option === 100 ? 'Any number of stops' :
+           option === 0 ? 'Nonstop only' :
+           option === 1 ? '1 stop or fewer' : '2 stops or fewer'}
         </label>
       ))}
     </div>
   );
 });
 
-const AirlinesFilter = React.memo(({ airlines, setAirlines }) => {
+const AirlinesFilter = React.memo(({ airlines, setAirlines, setIsAirlineFilterUpdated }) => {
   const handleChange = useCallback((category, item) => {
     setAirlines(prev => ({
-      ...prev,
       [category]: {
         ...prev[category],
         [item]: !prev[category][item],
       },
-    }));
+    }))
+
+    setIsAirlineFilterUpdated(true);
   }, [setAirlines]);
 
   return (
@@ -290,14 +399,14 @@ const TimesFilter = React.memo(({ timeFilter, setTimeFilter }) => {
             <input type="checkbox" 
               checked={airport.checked}
               onChange={() => onAirportSelect(airport.id)} />
-            {airport.name}
+            {airport.name} ({airport.id})
           </label>
         ))}
       </div>
     );
   });
 
-  const LayoverDurationFilter = React.memo(({ duration, setDuration }) => {
+  const LayoverDurationFilter = React.memo(({ duration, setDuration, maxLayoverDuration }) => {
     const handleDurationChange = (event, newValue) => {
       setDuration(newValue);
     };
@@ -321,7 +430,7 @@ const TimesFilter = React.memo(({ timeFilter, setTimeFilter }) => {
             valueLabelDisplay="auto"
             valueLabelFormat={formatDuration}
             min={0}
-            max={24}
+            max={maxLayoverDuration}
             step={0.5}
             sx={{
               '& .MuiSlider-thumb': {
@@ -338,7 +447,7 @@ const TimesFilter = React.memo(({ timeFilter, setTimeFilter }) => {
     );
   });
 
-  const TotalDurationFilter = React.memo(({ duration, setDuration }) => {
+  const TotalDurationFilter = React.memo(({ duration, setDuration, maxDuration }) => {
     const handleDurationChange = (event, newValue) => {
       setDuration(newValue);
     };
@@ -362,7 +471,7 @@ const TimesFilter = React.memo(({ timeFilter, setTimeFilter }) => {
             valueLabelDisplay="auto"
             valueLabelFormat={formatDuration}
             min={0}
-            max={24}
+            max={maxDuration}
             step={0.5}
             sx={{
               '& .MuiSlider-thumb': {

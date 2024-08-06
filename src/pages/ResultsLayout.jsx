@@ -7,10 +7,13 @@ import FlightCard from '../components/FlightCard';
 import HeaderLayout from '../components/HeaderLayout';
 import {flightDataArray} from '../utils/testResultsData.js'
 import {useInput} from '../components/InputContext.js'
+import { useResults } from '../components/ResultsContext';
 
 const FlightResultsPage = () => {
 
   const {searchInputs, setSearchInputs} = useInput({})
+  const {results, setResults} = useResults({})
+  const [displayedFlights, setDisplayedFlights] = useState(results['data'])
 
   const [tripType, setTripType] = useState(searchInputs['trip_type']);
   const [flyingFrom, setFlyingFrom] = useState(searchInputs['flying_from']);
@@ -24,8 +27,6 @@ const FlightResultsPage = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const handleChatOpen = () => setIsChatOpen(true);
   const handleChatClose = () => setIsChatOpen(false);
-
-  console.log(searchInputs)
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -67,12 +68,14 @@ const FlightResultsPage = () => {
         returnDate={returnDate}
         setReturnDate={setReturnDate}
       />
-        <FilterComponent/>
+        <FilterComponent
+          displayedFlights={displayedFlights}
+          setDisplayedFlights={setDisplayedFlights}/>
       <Box sx={{ display: 'flex', flexDirection: 'column', 
           maxWidth: isMobile ? '100%' : '82%',
           gap: 2 }}>
         <Typography variant="h6" sx={{ mb: 1 }}>Select a Departing Flight</Typography>
-        {flightDataArray.map((flight, index) => (
+        {displayedFlights.map((flight, index) => (
             <FlightCard
               key={index}
               isMobile={isMobile}

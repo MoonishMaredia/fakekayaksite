@@ -68,7 +68,7 @@ const TripOptionsBar = ({
         size="small"
         sx={{...customStyles, 
           cursor:"pointer", 
-          width: isMobile ? '40%' : '20%',
+          width: isMobile ? '40%' : '15%',
           }}
         select
         value={tripType}
@@ -97,9 +97,9 @@ const TripOptionsBar = ({
       <TextField
         size="small"
         sx={{...customStyles, 
-          width: isMobile ? '30%' : '15%', 
+          width: isMobile ? '30%' : '17%', 
           cursor:"pointer"}}
-        value={`${passengers}`}
+        value={`${passengers}, ${seatType}`}
         onClick={handlePassengerClick}
         InputProps={{
           startAdornment: <Person fontSize="small" sx={{ mr: 1 }} />,
