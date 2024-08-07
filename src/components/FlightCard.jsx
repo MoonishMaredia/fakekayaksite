@@ -56,7 +56,7 @@ const FlightCard = ({ isMobile, flightData }) => {
   }
 }
 
-const stopsDetailText = useMemo(()=>getStopsText(), [flightData])
+const stopsDetailText = useMemo(()=>getStopsText(), [flightData ,getStopsText])
 
 
   // Carry-on fees data
@@ -77,7 +77,7 @@ const stopsDetailText = useMemo(()=>getStopsText(), [flightData])
   };
 
   // Function to get carry-on fees
-  const getCarryFees = (airline, numBags, roundTrip=true) => {
+  const getCarryFees = (airline, numBags) => {
     if (carryOnFees.hasOwnProperty(airline)) {
         return carryOnFees[airline][0] * numBags;
     } else {
@@ -86,7 +86,7 @@ const stopsDetailText = useMemo(()=>getStopsText(), [flightData])
 };
 
   // Function to get checked fees
-  const getCheckedFees = (airline, numBags, roundTrip=true) => {
+  const getCheckedFees = (airline, numBags, roundTrip=false) => {
     if (checkedFees.hasOwnProperty(airline)) {
         return checkedFees[airline].slice(0, numBags).reduce((a, b) => a + b, 0);
       } else {
@@ -94,8 +94,8 @@ const stopsDetailText = useMemo(()=>getStopsText(), [flightData])
       }
   } 
 
-  const checkedBagFees = React.useMemo(()=>getCheckedFees(flightData['airline'], 1,[flightData]))
-  const carryOnBagFees = React.useMemo(()=>getCarryFees(flightData['airline'], 1,[flightData]))
+  const checkedBagFees = React.useMemo(()=>getCheckedFees(flightData['airline'], 1),[flightData, getCheckedFees])
+  const carryOnBagFees = React.useMemo(()=>getCarryFees(flightData['airline'], 1),[flightData, getCarryFees])
 
   return (
     <Card>

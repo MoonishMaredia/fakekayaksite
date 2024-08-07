@@ -1,12 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { Chip } from '@mui/material';
-import { Slider } from '@mui/material';
-import { FlightTakeoff } from '@mui/icons-material';
-import {FlightLand} from '@mui/icons-material';
 import '../FilterComponent.css'; // We'll create this CSS file for styling
 import { useResults } from './ResultsContext';
-import {airportCodes} from '../busyairportcodes.js'
-import { flightDataArray } from '../utils/testResultsData';
 import PriceFilter from './filters/PriceFilter';
 import StopsFilter from './filters/StopsFilter';
 import AirlinesFilter from './filters/AirlinesFilter';
@@ -14,44 +9,90 @@ import TimesFilter from './filters/TimesFilter';
 import ConnectingAirportsFilter from './filters/ConnectingAirportsFilter';
 import LayoverDurationFilter from './filters/LayoverDurationFilter';
 import TotalDurationFilter from './filters/TotalDurationFilter';
+import initializeFilters from './initializeFilters';
 
 const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
 
   const {results, setResults} = useResults({});
+  // const [filterOptions, setFilterOptions] = useState(null);
 
-  const allAirlines = useMemo(() => {
-    return Array.from(new Set(results['data'].map(flight => flight.airline)));
-  }, [results['data']]);
+  const filterOptions = useMemo(() => {
+    if (results.data) {
+      return initializeFilters(results.data);
+    }
+    return null;
+  }, [results.data]);
 
-  const airlinesFilterOptions =  useMemo(() => {
-    return allAirlines.reduce((acc, airline) => {
-    acc[airline] = true;  
-    return acc;
-  }, {})}, [results['data']]);
 
-  const [airlinesFilter, setAirlinesFilter] = useState(airlinesFilterOptions);
-  const [isAirlineFilterUpdated, setIsAirlineFilterUpdated] = useState(false)
+  useEffect(() => {
+    if (filterOptions) {
+      setAirlinesFilter(filterOptions.airlinesFilterOptions);
+      setConnectingAirports(filterOptions.connectingAirportsFilterOptions);
+      setPriceFilter(filterOptions.maxPrice);
+      setLayoverDuration([0, filterOptions.maxLayoverDuration]);
+      setTotalDuration([0, filterOptions.maxDuration]);
+    }
+  }, [filterOptions]);
 
-  const allConnectingAirports = useMemo(() => {
-    return Array.from(new Set(
-      results['data']
-        .filter(flight => flight.layover !== null) // Filter out flights without layover
-        .flatMap(flight => flight.layover.map(layover => layover.id))
-    ));
-  }, [results['data']]);
+  // useEffect(()=>{
+    
+  //   const [allAirlines, airlinesFilterOptions, 
+  //     allConnectingAirports,connectingAirportsFilterOptions,
+  //     maxPrice, maxLayoverDuration, maxDuration] = initializeFilters()
 
-  const connectingAirportsFilterOptions =  useMemo(() => {
-    return allConnectingAirports.reduce((acc, id) => {
-      const add = {
-        'id': id,
-        'name': airportCodes[id].name,
-        'checked':true
-      }
-      acc.push(add)
-      return acc
-  }, [])}, [results['data']]);
+  // }, [results['data']])
 
-  const [connectingAirports, setConnectingAirports] = useState(connectingAirportsFilterOptions);
+  // const allAirlines = useMemo(() => {
+  //   return Array.from(new Set(results['data'].map(flight => flight.airline)));
+  // }, [results['data']]);
+
+  // const airlinesFilterOptions =  useMemo(() => {
+  //   return allAirlines.reduce((acc, airline) => {
+  //   acc[airline] = true;  
+  //   return acc;
+  // }, {})}, [results['data']]);
+
+  // const allConnectingAirports = useMemo(() => {
+  //   return Array.from(new Set(
+  //     results['data']
+  //       .filter(flight => flight.layover !== null) // Filter out flights without layover
+  //       .flatMap(flight => flight.layover.map(layover => layover.id))
+  //   ));
+  // }, [results['data']]);
+
+  // const connectingAirportsFilterOptions =  useMemo(() => {
+  //   return allConnectingAirports.reduce((acc, id) => {
+  //     const add = {
+  //       'id': id,
+  //       'name': airportCodes[id].name,
+  //       'checked':true
+  //     }
+  //     acc.push(add)
+  //     return acc
+  // }, [])}, [results['data']]);
+
+  // const maxPrice = useMemo(() => {
+  //   return results['data'].reduce((acc,curr) => {
+  //     if (curr.trip_cost > acc) {
+  //       acc = curr.trip_cost}
+  //     return acc
+  //   }, [0])}, [results['data']])
+
+  // const maxLayoverDuration = useMemo(() => {
+  //   return results['data']
+  //       .filter(flight => flight.layover !== null) // Filter out flights without layover
+  //       .flatMap(flight => flight.layover.map(layover => layover.duration))
+  //       .reduce((acc, curr) => curr/60 > acc ? Math.ceil(curr/60) : acc, [0]);
+  // }, [results['data']]);
+
+  // const maxDuration = useMemo(() => {
+  //   return displayedFlights.reduce((acc,curr) => {
+  //     if (curr.total_duration / 60 > acc) {
+  //       acc = curr.total_duration / 60
+  //     }
+  //     return Math.ceil(acc)
+  //   }, [0])}, [results['data']])
+
   const handleAirportSelect = (airportId) => {
     setConnectingAirports((prevAirports) => {
       return prevAirports.map(airport=> {
@@ -63,39 +104,16 @@ const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
     });
   };
 
-  const maxPrice = useMemo(() => {
-    return results['data'].reduce((acc,curr) => {
-      if (curr.trip_cost > acc) {
-        acc = curr.trip_cost}
-      return acc
-    }, [0])}, [results['data']])
-
-  const [priceFilter, setPriceFilter] = useState(maxPrice);
+  const [airlinesFilter, setAirlinesFilter] = useState({});
+  const [connectingAirports, setConnectingAirports] = useState([]);
+  const [priceFilter, setPriceFilter] = useState(0);
   const [stopsFilter, setStopsFilter] = useState(100);
-  const [timeFilter, setTimeFilter] = useState({
-    departure: [0, 24],
-    arrival: [0, 24],
-  });
+  const [timeFilter, setTimeFilter] = useState({ departure: [0, 24], arrival: [0, 24] });
+  const [layoverDuration, setLayoverDuration] = useState([0, 0]);
+  const [totalDuration, setTotalDuration] = useState([0, 0]);
 
-  const maxLayoverDuration = useMemo(() => {
-    return results['data']
-        .filter(flight => flight.layover !== null) // Filter out flights without layover
-        .flatMap(flight => flight.layover.map(layover => layover.duration))
-        .reduce((acc, curr) => curr/60 > acc ? Math.ceil(curr/60) : acc, [0]);
-  }, [results['data']]);
-
-  const [layoverDuration, setLayoverDuration] = useState([0, maxLayoverDuration]);
-
-  const maxDuration = useMemo(() => {
-    return displayedFlights.reduce((acc,curr) => {
-      if (curr.total_duration / 60 > acc) {
-        acc = curr.total_duration / 60
-      }
-      return Math.ceil(acc)
-    }, [0])}, [results['data']])
-
-  const [totalDuration, setTotalDuration] = useState([0, maxDuration]);
   const [openFilter, setOpenFilter] = useState(null);
+
   const popoverRef = useRef(null);
   const filterButtonRefs = useRef({});
 
@@ -120,7 +138,7 @@ const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
   const renderFilterContent = () => {
     switch (openFilter) {
       case 'Price':
-        return <PriceFilter price={priceFilter} setPrice={setPriceFilter} maxPrice={maxPrice} />;
+        return <PriceFilter price={priceFilter} setPrice={setPriceFilter} maxPrice={filterOptions.maxPrice} />;
       case 'Stops':
         return <StopsFilter stops={stopsFilter} setStops={setStopsFilter} />;
       case 'Airlines':
@@ -135,14 +153,14 @@ const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
                 <LayoverDurationFilter 
                 duration={layoverDuration} 
                 setDuration={setLayoverDuration} 
-                maxLayoverDuration={maxLayoverDuration}/>
+                maxLayoverDuration={filterOptions.maxLayoverDuration}/>
                 <ConnectingAirportsFilter airports={connectingAirports} onAirportSelect={handleAirportSelect} />
             </div>);
       case 'Duration':
         return <TotalDurationFilter 
           duration={totalDuration} 
           setDuration={setTotalDuration}
-          maxDuration={maxDuration} />;
+          maxDuration={filterOptions.maxDuration} />;
       default:
         return null;
     }
@@ -174,10 +192,11 @@ const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
 
   useEffect(()=> {
 
+    if (!results.data) return;
+
     let newFlights = results['data']
 
     const areAllAirlinesSelected = Object.values(airlinesFilter).every(selected => selected);
-
     if (!areAllAirlinesSelected) {
       const selectedAirlines = Object.keys(airlinesFilter).filter(airline => airlinesFilter[airline]);
       newFlights = newFlights.filter(flight => selectedAirlines.includes(flight.airline));
@@ -187,7 +206,7 @@ const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
       newFlights = newFlights.filter(flight => flight.num_stops <= stopsFilter);
     }
 
-    if (priceFilter !== maxPrice) {
+    if (priceFilter !== filterOptions.maxPrice) {
       newFlights = newFlights.filter(flight => flight.trip_cost <= priceFilter);
     }
 
@@ -201,33 +220,7 @@ const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
       newFlights = newFlights.filter(flight => flight.end_time_hours >= lowerBound && flight.end_time_hours <= upperBound);
     }
 
-    // const areAllAirlinesSelected = Object.values(airlinesFilter['airlines']).every((selected) => selected);
-    // if(!areAllAirlinesSelected) {
-    //   const selectedAirlines = Object.keys(airlinesFilter['airlines']).filter((airline) => airlinesFilter['airlines'][airline])
-    //   newFlights = newFlights.filter(flight=>selectedAirlines.includes(flight.airline))
-    // }
-
-    // if(stopsFilter!==100) {
-    //   newFlights = newFlights.filter(flight=>flight.num_stops <= stopsFilter)
-    // }
-
-    // if(priceFilter!==maxPrice) {
-    //   newFlights = newFlights.filter(flight=> flight.trip_cost <= priceFilter)
-    // }
-
-    // if(timeFilter['departure'][0] !==0 || timeFilter['departure'][1]!==24) {
-    //   const lowerBound = timeFilter['departure'][0]
-    //   const upperBound = timeFilter['departure'][1]
-    //   newFlights = newFlights.filter(flight => ((flight.start_time_hours >= lowerBound) && (flight.start_time_hours<=upperBound)))
-    // }
-
-    // if(timeFilter['arrival'][0] !==0 || timeFilter['arrival'][1]!==24) {
-    //   const lowerBound = timeFilter['arrival'][0]
-    //   const upperBound = timeFilter['arrival'][1]
-    //   newFlights = newFlights.filter(flight => (flight.end_time_hours >= lowerBound) && (flight.end_time_hours<=upperBound))
-    // }
-
-    if (totalDuration[0] !== 0 || totalDuration[1] !== maxDuration) {
+    if (totalDuration[0] !== 0 || totalDuration[1] !== filterOptions.maxDuration) {
       const [lowerBound, upperBound] = totalDuration;
       newFlights = newFlights.filter(flight => {
         const durationInHours = flight.total_duration / 60;
@@ -235,7 +228,7 @@ const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
       });
     }
     
-    if (layoverDuration[0] !== 0 || layoverDuration[1] !== maxLayoverDuration) {
+    if (layoverDuration[0] !== 0 || layoverDuration[1] !== filterOptions.maxLayoverDuration) {
       const [lowerBound, upperBound] = layoverDuration;
       newFlights = newFlights.filter(flight => 
         flight.layover === null || flight.layover.every(layover => {
@@ -244,40 +237,6 @@ const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
         })
       );
     }
-
-    // if(totalDuration[0]!==0 || totalDuration[1]!==maxDuration) {
-    //   const lowerBound = totalDuration[0]
-    //   const upperBound = totalDuration[1]
-    //   newFlights = newFlights.filter(flight=>(flight.total_duration/60 >= lowerBound) && (flight.total_duration/60 <=upperBound))
-    // }
-
-    // if(layoverDuration[0]!==0 || layoverDuration[1]!==maxLayoverDuration) {
-    //   const lowerBound = layoverDuration[0]
-    //   const upperBound = layoverDuration[1]
-    //   newFlights = newFlights.filter(flight=> {
-    //     if(flight.layover===null) {
-    //       return true
-    //     } else {
-    //       const allMatch = flight.layover.every((layover=>((layover.duration/60 >= layoverDuration[0] ) && (layover.duration/60 <= layoverDuration[1]))))
-    //       return allMatch
-    //     }
-    //   })
-    // }
-
-    // const areAllConnectionsSelected = connectingAirports.every((airport) => airport.checked);
-    // if(!areAllConnectionsSelected) {
-    //   const UnselectedConnections = connectingAirports
-    //     .filter((airport) => !airport.checked)
-    //     .reduce((acc, curr)=>[...acc, curr.id], [])
-    //   newFlights = newFlights.filter(flight => {
-    //     if(flight.layover===null) {
-    //       return true
-    //     } else {
-    //       return !flight.layover.some(layover => {
-    //         return UnselectedConnections.includes(layover.id)
-    //     })
-    //   }
-    // })}
 
     const areAllConnectionsSelected = connectingAirports.every(airport => airport.checked);
     if (!areAllConnectionsSelected) {
@@ -291,7 +250,7 @@ const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
 
     setDisplayedFlights(newFlights)
 
-  }, [airlinesFilter, stopsFilter, priceFilter, timeFilter, totalDuration, connectingAirports, layoverDuration])  
+  }, [airlinesFilter, stopsFilter, priceFilter, timeFilter, totalDuration, connectingAirports, layoverDuration, results.data])  
 
   return (
     <div className="filter-component">
