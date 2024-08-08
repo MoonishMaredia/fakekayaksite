@@ -3,6 +3,7 @@ import { Box, TextField, InputAdornment, MenuItem, Popover } from '@mui/material
 import { ArrowDropDown, Person, FlightTakeoff, LuggageOutlined } from '@mui/icons-material';
 import PassengerSelector from './PassengerSelector';
 import BagSelector from './BagSelector';
+import {useInput} from './InputContext'
 
 const customStyles = {
     '& .MuiOutlinedInput-root': {
@@ -39,6 +40,8 @@ const TripOptionsBar = ({
   checkedBags, setCheckedBags,
   isMobile 
 }) => {
+
+  const {searchInputs, setSearchInputs} = useInput({});
   const [passengerAnchorEl, setPassengerAnchorEl] = useState(null);
   const [bagAnchorEl, setBagAnchorEl] = useState(null);
 
@@ -60,7 +63,7 @@ const TripOptionsBar = ({
 
   const passengerOpen = Boolean(passengerAnchorEl);
   const bagOpen = Boolean(bagAnchorEl);
-  const totalBags = carryOnBags + checkedBags;
+  const totalBags = searchInputs.num_carryOn + searchInputs.num_checked;
 
   return (
     <Box sx={{ display: 'flex', gap: 0, width: isMobile ? '100%' : '70%'}}>
@@ -71,8 +74,8 @@ const TripOptionsBar = ({
           width: isMobile ? '40%' : '15%',
           }}
         select
-        value={tripType}
-        onChange={(e) => setTripType(e.target.value)}
+        value={searchInputs.trip_type}
+        onChange={(e) => setSearchInputs((prev) => ({ ...prev, trip_type: e.target.value }))}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
@@ -99,7 +102,7 @@ const TripOptionsBar = ({
         sx={{...customStyles, 
           width: isMobile ? '30%' : '17%', 
           cursor:"pointer"}}
-        value={`${passengers}, ${seatType}`}
+        value={`${searchInputs.num_passengers}, ${searchInputs.seat_type}`}
         onClick={handlePassengerClick}
         InputProps={{
           startAdornment: <Person fontSize="small" sx={{ mr: 1 }} />,

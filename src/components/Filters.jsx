@@ -34,65 +34,6 @@ const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
     }
   }, [filterOptions]);
 
-  // useEffect(()=>{
-    
-  //   const [allAirlines, airlinesFilterOptions, 
-  //     allConnectingAirports,connectingAirportsFilterOptions,
-  //     maxPrice, maxLayoverDuration, maxDuration] = initializeFilters()
-
-  // }, [results['data']])
-
-  // const allAirlines = useMemo(() => {
-  //   return Array.from(new Set(results['data'].map(flight => flight.airline)));
-  // }, [results['data']]);
-
-  // const airlinesFilterOptions =  useMemo(() => {
-  //   return allAirlines.reduce((acc, airline) => {
-  //   acc[airline] = true;  
-  //   return acc;
-  // }, {})}, [results['data']]);
-
-  // const allConnectingAirports = useMemo(() => {
-  //   return Array.from(new Set(
-  //     results['data']
-  //       .filter(flight => flight.layover !== null) // Filter out flights without layover
-  //       .flatMap(flight => flight.layover.map(layover => layover.id))
-  //   ));
-  // }, [results['data']]);
-
-  // const connectingAirportsFilterOptions =  useMemo(() => {
-  //   return allConnectingAirports.reduce((acc, id) => {
-  //     const add = {
-  //       'id': id,
-  //       'name': airportCodes[id].name,
-  //       'checked':true
-  //     }
-  //     acc.push(add)
-  //     return acc
-  // }, [])}, [results['data']]);
-
-  // const maxPrice = useMemo(() => {
-  //   return results['data'].reduce((acc,curr) => {
-  //     if (curr.trip_cost > acc) {
-  //       acc = curr.trip_cost}
-  //     return acc
-  //   }, [0])}, [results['data']])
-
-  // const maxLayoverDuration = useMemo(() => {
-  //   return results['data']
-  //       .filter(flight => flight.layover !== null) // Filter out flights without layover
-  //       .flatMap(flight => flight.layover.map(layover => layover.duration))
-  //       .reduce((acc, curr) => curr/60 > acc ? Math.ceil(curr/60) : acc, [0]);
-  // }, [results['data']]);
-
-  // const maxDuration = useMemo(() => {
-  //   return displayedFlights.reduce((acc,curr) => {
-  //     if (curr.total_duration / 60 > acc) {
-  //       acc = curr.total_duration / 60
-  //     }
-  //     return Math.ceil(acc)
-  //   }, [0])}, [results['data']])
-
   const handleAirportSelect = (airportId) => {
     setConnectingAirports((prevAirports) => {
       return prevAirports.map(airport=> {
@@ -250,7 +191,7 @@ const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
 
     setDisplayedFlights(newFlights)
 
-  }, [airlinesFilter, stopsFilter, priceFilter, timeFilter, totalDuration, connectingAirports, layoverDuration, results.data])  
+  }, [airlinesFilter, stopsFilter, priceFilter, timeFilter, totalDuration, connectingAirports, layoverDuration])  
 
   return (
     <div className="filter-component">

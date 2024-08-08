@@ -1,23 +1,34 @@
 import React from 'react';
-import { Box, Paper } from '@mui/material';
+import { Box, Paper, TextField } from '@mui/material';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import AirportAutocomplete from './AirportAutocomplete';
-import {TextField} from '@mui/material';
-import {CalendarToday} from '@mui/icons-material';
+import { CalendarToday } from '@mui/icons-material';
+import { useInput } from './InputContext.js';
+import moment from 'moment';
 
-const FlightSearchBar = ({
-  isMobile,
-  tripType,
-  flyingFrom,
-  setFlyingFrom,
-  flyingTo,
-  setFlyingTo,
-  startDate,
-  setStartDate,
-  returnDate,
-  setReturnDate
-}) => {
+const FlightSearchBar = ({ isMobile }) => {
+  const { searchInputs, setSearchInputs } = useInput({});
+
+  // Get today's date
+  const today = new Date();
+  // Calculate the date one year from today
+  const oneYearFromToday = new Date();
+  oneYearFromToday.setFullYear(today.getFullYear() + 1);
+
+  // Function to format date to YYYY-MM-DD using moment
+  const formatDate = (date) => {
+    return moment(date).format('YYYY-MM-DD');
+  };
+
+  const handleStartDateChange = (date) => {
+    setSearchInputs(prev => ({ ...prev, start_date: formatDate(date) }));
+  };
+
+  const handleReturnDateChange = (date) => {
+    setSearchInputs(prev => ({ ...prev, return_date: formatDate(date) }));
+  };
+
   return (
     <Paper 
       elevation={0} 
@@ -30,16 +41,12 @@ const FlightSearchBar = ({
     >
       <Box>
         <AirportAutocomplete
-          inputValue={flyingFrom}
-          setInputValue={setFlyingFrom}
           placeholderText={"Flying From..."}
           takeOff={true}
         />
       </Box>
       <Box>
         <AirportAutocomplete
-          inputValue={flyingTo}
-          setInputValue={setFlyingTo}
           placeholderText={'Flying To...'}
           takeOff={false}
         />
@@ -51,41 +58,42 @@ const FlightSearchBar = ({
         '& .MuiTextField-root': { borderRadius: 4 },
       }}>
         <DatePicker
-        selected={startDate}
-        onChange={(date) => setStartDate(date)}
-        selectsStart
-        startDate={startDate}
-        endDate={returnDate}
-        placeholderText="Start Date"
-        customInput={
+          selected={searchInputs.start_date ? moment(searchInputs.start_date).toDate() : null}
+          onChange={handleStartDateChange}
+          selectsStart
+          startDate={searchInputs.start_date ? moment(searchInputs.start_date).toDate() : null}
+          minDate={today} // Disable dates before today
+          placeholderText="Start Date"
+          customInput={
             <TextField
-            fullWidth
-            InputProps={{
+              fullWidth
+              InputProps={{
                 startAdornment: <CalendarToday fontSize="small" sx={{ mr: 1 }} />,
                 style: { fontSize: '0.9rem' },
-            }}
+              }}
             />
-        }
+          }
         />
-        {tripType === 'Round-trip' && (
-        <DatePicker
-            selected={returnDate}
-            onChange={(date) => setReturnDate(date)}
+        {searchInputs.trip_type === 'Round-trip' && (
+          <DatePicker
+            selected={searchInputs.return_date ? moment(searchInputs.return_date).toDate() : null}
+            onChange={handleReturnDateChange}
             selectsEnd
-            startDate={startDate}
-            endDate={returnDate}
+            startDate={searchInputs.start_date ? moment(searchInputs.start_date).toDate() : null}
+            endDate={searchInputs.return_date ? moment(searchInputs.return_date).toDate() : null}
             placeholderText="Return Date"
-            minDate={startDate}
+            minDate={searchInputs.start_date ? moment(searchInputs.start_date).toDate() : null}
+            maxDate={oneYearFromToday} // Set max date to 1 year from today
             customInput={
-            <TextField
+              <TextField
                 fullWidth
                 InputProps={{
-                startAdornment: <CalendarToday fontSize="small" sx={{ mr: 1 }} />,
-                style: { fontSize: '0.9rem' },
+                  startAdornment: <CalendarToday fontSize="small" sx={{ mr: 1 }} />,
+                  style: { fontSize: '0.9rem' },
                 }}
-            />
+              />
             }
-        />
+          />
         )}
       </Box>
     </Paper>

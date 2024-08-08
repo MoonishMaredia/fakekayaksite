@@ -10,7 +10,7 @@ import {useInput} from '../components/InputContext.js'
 import { useResults } from '../components/ResultsContext';
 
 const FlightResultsPage = () => {
-
+  
   const {searchInputs, setSearchInputs} = useInput({})
   const {results, setResults} = useResults({})
   const [displayedFlights, setDisplayedFlights] = useState(results['data'])
@@ -28,6 +28,8 @@ const FlightResultsPage = () => {
   const handleChatOpen = () => setIsChatOpen(true);
   const handleChatClose = () => setIsChatOpen(false);
 
+  // console.log(searchInputs)
+
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -44,29 +46,10 @@ const FlightResultsPage = () => {
       gap: 1 
     }}>
       <TripOptionsBar 
-        tripType={tripType}
-        setTripType={setTripType}
-        passengers={passengers}
-        setPassengers={setPassengers}
-        seatType={seatType}
-        setSeatType={setSeatType}
-        carryOnBags={carryOnBags}
-        setCarryOnBags={setCarryOnBags}
-        checkedBags={checkedBags}
-        setCheckedBags={setCheckedBags}
         isMobile={isMobile}
       />
       <FlightSearchBar 
         isMobile={isMobile}
-        tripType={tripType}
-        flyingFrom={flyingFrom}
-        setFlyingFrom={setFlyingFrom}
-        flyingTo={flyingTo}
-        setFlyingTo={setFlyingTo}
-        startDate={startDate}
-        setStartDate={setStartDate}
-        returnDate={returnDate}
-        setReturnDate={setReturnDate}
       />
         <FilterComponent
           displayedFlights={displayedFlights}
