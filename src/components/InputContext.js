@@ -13,7 +13,7 @@ export const InputProvider = ({ children }) => {
     "flying_to": "JFK",
     "start_date": "2024-09-15",
     "return_date": "2024-09-30",
-    "num_passengers": 2,
+    "num_passengers": 1,
     "seat_type": "Economy",
     "num_carryOn": 1,
     "num_checked": 0

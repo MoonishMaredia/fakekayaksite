@@ -28,7 +28,6 @@ const PassengerSelector = ({passengers, setPassengers, seatType, setSeatType}) =
         >
           <MenuItem value="Economy">Economy</MenuItem>
           <MenuItem value="Business">Business</MenuItem>
-          <MenuItem value="First">First</MenuItem>
         </Select>
       </FormControl>
     </Box>

@@ -9,8 +9,16 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import {useInput} from './InputContext.js'
+import {useResults} from './ResultsContext.js'
 
-const FlightCardDesktop = ({ flightData, expanded, handleExpandClick, memoizedStartTime, memoizedEndTime, memoizedDuration, stopsDetailText, carryOnBagFees, checkedBagFees }) => (
+
+export default function FlightCardDesktop({ flightData, expanded, handleExpandClick, memoizedStartTime, memoizedEndTime, memoizedDuration, stopsDetailText}) {
+
+  const {searchInputs} = useInput({})
+  const {results} = useResults({})
+
+  return (
   <Grid container spacing={2} alignItems="center">
     {expanded ? (
       <>
@@ -68,10 +76,10 @@ const FlightCardDesktop = ({ flightData, expanded, handleExpandClick, memoizedSt
     )}
     <Grid item xs={3}>
       <Typography variant="h7" fontWeight="bold">
-        ${Math.ceil(flightData['trip_cost']/2) + carryOnBagFees + checkedBagFees} <Typography sx={{display:"inline"}}> / departing </Typography>
+        ${flightData.totalFlightCost} <Typography sx={{display:"inline"}}> / {searchInputs['trip_type']==="Round-trip" ? "departing" : "one-way"} </Typography>
       </Typography>
       <Typography variant="body2" color="text.secondary">
-        Flight Cost: ${Math.ceil(flightData['trip_cost']/2)}, Bag Fees: ${carryOnBagFees + checkedBagFees}
+        Flight Cost: ${flightData.adjTripCost}, Bag Fees: ${flightData.bagFees + flightData.checkedFees}
       </Typography> 
     </Grid>
     <Grid item xs={0.5} alignItems="center">
@@ -84,6 +92,5 @@ const FlightCardDesktop = ({ flightData, expanded, handleExpandClick, memoizedSt
       </IconButton>
     </Grid>
   </Grid>
-);
-
-export default FlightCardDesktop;
+)
+};

@@ -2,6 +2,7 @@ import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { Chip } from '@mui/material';
 import '../FilterComponent.css'; // We'll create this CSS file for styling
 import { useResults } from './ResultsContext';
+import { useInput } from './InputContext';
 import PriceFilter from './filters/PriceFilter';
 import StopsFilter from './filters/StopsFilter';
 import AirlinesFilter from './filters/AirlinesFilter';
@@ -14,14 +15,16 @@ import initializeFilters from './initializeFilters';
 const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
 
   const {results, setResults} = useResults({});
+  const {searchInputs, setSearchInputs} = useInput({});
+
   // const [filterOptions, setFilterOptions] = useState(null);
 
   const filterOptions = useMemo(() => {
     if (results.data) {
-      return initializeFilters(results.data);
+      return initializeFilters(results.data, searchInputs);
     }
     return null;
-  }, [results.data]);
+  }, [results.data, searchInputs]);
 
 
   useEffect(() => {

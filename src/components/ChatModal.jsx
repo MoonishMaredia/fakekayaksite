@@ -197,8 +197,8 @@ const ChatModal = ({
       }
     
     } else if(setter="setSeatType") {
-     if(!['Economy','Business','First'].includes(arg)) {
-      setFieldErrors({...fieldErrors, "seat_type":"#ERROR: Invalid value. It should be either Economy or Business or First"})
+     if(!['Economy','Business'].includes(arg)) {
+      setFieldErrors({...fieldErrors, "seat_type":"#ERROR: Invalid value. It should be either Economy or Business"})
       setSeatType("")
     } else {
       setSeatType(arg)
@@ -255,10 +255,7 @@ const ChatModal = ({
       setMessages((prev) => [{ sender: 'user', text: userMessage }, ...prev]);
       const prevAIMessage = aiMessages ? aiMessages[aiMessages.length - 1] : ""
       const inputObjString = getCompletedObject()
-      // console.log("========Sending========:")
-      // console.log("fieldErrors: ", fieldErrors)
       const [completeResponse, codeResponse, userResponse] = await makeGPTRequests(userMessage, prevAIMessage, inputObjString)
-      // console.log("Return:", completeResponse, codeResponse, userResponse)
 
       if(completeResponse==="True") {
         handleSubmit()

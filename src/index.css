@@ -17,3 +17,9 @@ code {
   color: white;
   min-height: 60px;
 }
+
+p {
+  margin-bottom: 8px;
+  padding-bottom: 0;
+  font-weight: 500;
+}

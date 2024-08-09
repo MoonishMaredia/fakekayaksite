@@ -13,12 +13,14 @@ import WarningIcon from '@mui/icons-material/Warning';
 import FlightCardMobile from './FlightCardMobile';
 import FlightCardDesktop from './FlightCardDesktop';
 import { airportCodes } from '../busyairportcodes.js';
-
+import {useInput} from './InputContext'
 
 
 const FlightCard = ({ isMobile, flightData }) => {
 
   // console.log(flightData['layover'][0].duration)
+
+  const {searchInputs} = useInput({});
 
   const [expanded, setExpanded] = useState(false);
   const handleExpandClick = () => {
@@ -58,45 +60,6 @@ const FlightCard = ({ isMobile, flightData }) => {
 
 const stopsDetailText = useMemo(()=>getStopsText(), [flightData ,getStopsText])
 
-
-  // Carry-on fees data
-  const carryOnFees = {
-    Spirit: [50]
-  };
-
-  // Checked fees data
-  const checkedFees = {
-    Alaska: [35, 45, 150],
-    American: [35, 45, 150],
-    Delta: [35, 45, 150],
-    Frontier: [70, 90, 100],
-    Hawaiian: [25, 40, 100],
-    JetBlue: [40, 60, 125],
-    Southwest: [0, 0, 125],
-    Spirit: [55, 80, 90]
-  };
-
-  // Function to get carry-on fees
-  const getCarryFees = (airline, numBags) => {
-    if (carryOnFees.hasOwnProperty(airline)) {
-        return carryOnFees[airline][0] * numBags;
-    } else {
-    return 0;
-  }
-};
-
-  // Function to get checked fees
-  const getCheckedFees = (airline, numBags, roundTrip=false) => {
-    if (checkedFees.hasOwnProperty(airline)) {
-        return checkedFees[airline].slice(0, numBags).reduce((a, b) => a + b, 0);
-      } else {
-        return checkedFees['American'].slice(0, numBags).reduce((a, b) => a + b, 0);
-      }
-  } 
-
-  const checkedBagFees = React.useMemo(()=>getCheckedFees(flightData['airline'], 1),[flightData, getCheckedFees])
-  const carryOnBagFees = React.useMemo(()=>getCarryFees(flightData['airline'], 1),[flightData, getCarryFees])
-
   return (
     <Card>
       <CardContent id="summary-card" sx={{ p: 2, '&:last-child': { pb: 2 } }}>
@@ -107,8 +70,6 @@ const stopsDetailText = useMemo(()=>getStopsText(), [flightData ,getStopsText])
             handleExpandClick={handleExpandClick}
             memoizedStartTime={memoizedStartTime}
             memoizedEndTime={memoizedEndTime}
-            carryOnBagFees={carryOnBagFees}
-            checkedBagFees={checkedBagFees}
             stopsDetailText={stopsDetailText}
           />
         ) : (
@@ -120,8 +81,6 @@ const stopsDetailText = useMemo(()=>getStopsText(), [flightData ,getStopsText])
             memoizedEndTime={memoizedEndTime}
             memoizedDuration={memoizedDuration}
             stopsDetailText={stopsDetailText}
-            carryOnBagFees={carryOnBagFees}
-            checkedBagFees={checkedBagFees}
           />
         )}
       </CardContent>
