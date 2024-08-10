@@ -12,7 +12,12 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import {useInput} from './InputContext.js'
 
 
-export default function FlightCardMobile({ flightData, expanded, handleExpandClick, memoizedStartTime, memoizedEndTime, carryOnBagFees, checkedBagFees, stopsDetailText }) {
+export default function FlightCardMobile({ 
+  flightData, expanded, 
+  handleExpandClick, memoizedStartTime, 
+  memoizedEndTime, memoizedDuration, 
+  stopsDetailText, isReturnFlightPage
+}) {
   
   const {searchInputs} = useInput({})
 
@@ -38,7 +43,7 @@ export default function FlightCardMobile({ flightData, expanded, handleExpandCli
             {`${memoizedStartTime} → ${memoizedEndTime}`}
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            MIA → JFK
+            {!isReturnFlightPage ? `${searchInputs.flying_from}–${searchInputs.flying_to}` : `${searchInputs.flying_to}–${searchInputs.flying_from}`}           
           </Typography>
           <Box display="flex" alignItems="center" mt={1}>
               <img src={flightData['airline_logo']} width="40px" height="auto" alt={flightData['airline']} />
@@ -57,7 +62,7 @@ export default function FlightCardMobile({ flightData, expanded, handleExpandCli
     <Grid item xs={4}>
       <Box justifyContent="flex-start" textAlign="left">
         <Typography sx={{fontSize:"12px"}} variant="body2" fontWeight="medium">
-          ${flightData.totalFlightCost} / {searchInputs['trip_type']==="Round-trip" ? "departing" : "one-way"}
+          ${flightData.totalFlightCost} / ${searchInputs['trip_type'] === "Round-trip" ? (isReturnFlightPage ? "returning" : "departing") : "one-way"}
         </Typography>
         <Typography sx={{fontSize:"10px"}} variant="caption" display="block">
             Trip Cost: ${flightData.adjTripCost}, Bag Fees: ${flightData.bagFees + flightData.checkedFees}

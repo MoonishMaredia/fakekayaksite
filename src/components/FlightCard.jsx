@@ -16,9 +16,7 @@ import { airportCodes } from '../busyairportcodes.js';
 import {useInput} from './InputContext'
 
 
-const FlightCard = ({ isMobile, flightData }) => {
-
-  // console.log(flightData['layover'][0].duration)
+const FlightCard = ({ isMobile, flightData, isReturnFlightPage, handleFlightSelection}) => {
 
   const {searchInputs} = useInput({});
 
@@ -61,8 +59,8 @@ const FlightCard = ({ isMobile, flightData }) => {
 const stopsDetailText = useMemo(()=>getStopsText(), [flightData ,getStopsText])
 
   return (
-    <Card>
-      <CardContent id="summary-card" sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+    <Card onClick={()=>handleFlightSelection(flightData['_id'], flightData['airline'], flightData['airline_logo'])} sx={{ cursor: 'pointer', '&:hover': { backgroundColor: 'rgb(241 245 249)' } }}>
+      <CardContent id="summary-card" sx={{ cursor:"pointer", p: 2, '&:last-child': { pb: 2 }}}>
         {isMobile ? (
           <FlightCardMobile
             flightData={flightData}
@@ -71,6 +69,7 @@ const stopsDetailText = useMemo(()=>getStopsText(), [flightData ,getStopsText])
             memoizedStartTime={memoizedStartTime}
             memoizedEndTime={memoizedEndTime}
             stopsDetailText={stopsDetailText}
+            isReturnFlightPage={isReturnFlightPage}
           />
         ) : (
           <FlightCardDesktop
@@ -81,6 +80,7 @@ const stopsDetailText = useMemo(()=>getStopsText(), [flightData ,getStopsText])
             memoizedEndTime={memoizedEndTime}
             memoizedDuration={memoizedDuration}
             stopsDetailText={stopsDetailText}
+            isReturnFlightPage={isReturnFlightPage}
           />
         )}
       </CardContent>
@@ -97,9 +97,9 @@ const stopsDetailText = useMemo(()=>getStopsText(), [flightData ,getStopsText])
           {flightData['flights'].map((flightLeg, index) => (
             <React.Fragment key={index}>
               <Box my={2} >
-                <Typography sx={{fontSize: isMobile ? "14px" : "16px"}} variant="body1" fontWeight="medium">{formatTime(flightLeg['start_time'])} · {airportCodes[flightLeg['start_airport']].name} ({flightLeg['start_airport']})</Typography>
+                <Typography sx={{fontSize: isMobile ? "14px" : "16px"}} variant="body1" fontWeight="medium">{formatTime(flightLeg['start_time'])} · {airportCodes[flightLeg['start_airport']] ? airportCodes[flightLeg['start_airport']].name : "Small Airport"} ({flightLeg['start_airport']})</Typography>
                 <Typography variant="body2" color="text.secondary" mt={1}>Travel time: {formatDuration(flightLeg['duration'])}</Typography>
-                <Typography sx={{fontSize: isMobile ? "14px" : "16px"}} variant="body1" fontWeight="medium" mt={2}>{formatTime(flightLeg['end_time'])} · {airportCodes[flightLeg['end_airport']].name} ({flightLeg['end_airport']})</Typography>
+                <Typography sx={{fontSize: isMobile ? "14px" : "16px"}} variant="body1" fontWeight="medium" mt={2}>{formatTime(flightLeg['end_time'])} · {airportCodes[flightLeg['end_airport']] ? airportCodes[flightLeg['end_airport']].name : "Small Airport"} ({flightLeg['end_airport']})</Typography>
                 <Stack direction="row" spacing={1} mt={1}>
                   <Typography variant="body2" color="text.secondary">{flightLeg['airline']} · Economy · {flightLeg['airplane']} · {flightLeg['flight_number']}</Typography>
                 </Stack>
@@ -108,7 +108,7 @@ const stopsDetailText = useMemo(()=>getStopsText(), [flightData ,getStopsText])
                 <React.Fragment>
                   <Divider />
                   <Typography variant="body2" fontWeight="medium" my={2}>
-                    {formatDuration(flightData['layover'][index].duration)} layover · {airportCodes[flightData['layover'][index].id].name} ({flightData['layover'][index].id})
+                    {formatDuration(flightData['layover'][index].duration)} layover · {airportCodes[flightData['layover'][index].id] ? airportCodes[flightData['layover'][index].id].name : "Small Airport"} ({flightData['layover'][index].id})
                     {flightData['layover'][index].overnight &&
                     <Typography variant="body2" color="error" mt={1}>
                       <WarningIcon fontSize="small" sx={{ verticalAlign: 'middle', mr: 0.5 }} />

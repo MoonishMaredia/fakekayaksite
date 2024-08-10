@@ -13,12 +13,12 @@ const customStyles = {
     },
 }
 
-export default function SortTitleBar({isMobile, sortMethod, setSortMethod}) {
+export default function SortTitleBar({isMobile, sortMethod, setSortMethod, isReturnFlightPage}) {
 
     return (
         <Box sx={{
             display:'flex', flexDirection:'row', justifyContent:'space-between', alignItems: 'center'}}>
-        <Typography variant={isMobile ? "subtitle4" : "h6"} sx={{ mb: 1, alignSelf:"flex-end" }}> {isMobile ? "" : "Select a"} Departing Flight{isMobile ? "s" : ""}</Typography>
+        <Typography variant={isMobile ? "subtitle4" : "h6"} sx={{ mb: 1, alignSelf:"flex-end" }}> {isMobile ? "" : "Select a"} {isReturnFlightPage ? "Returning Flight" : "Departing Flight"} {isMobile ? "s" : ""}</Typography>
         <Box sx={{display:'flex', 
             flexDirection:'column', 
             alignItems:'left',

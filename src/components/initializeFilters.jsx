@@ -17,7 +17,7 @@ export const initializeFilters = (results, searchInputs) => {
   const connectingAirportsFilterOptions = allConnectingAirports.reduce((acc, id) => {
     const add = {
       'id': id,
-      'name': airportCodes[id].name,
+      'name': airportCodes[id] ? airportCodes[id].name : "Small Airport",
       'checked': true
     };
     acc.push(add);

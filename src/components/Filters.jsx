@@ -20,11 +20,11 @@ const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
   // const [filterOptions, setFilterOptions] = useState(null);
 
   const filterOptions = useMemo(() => {
-    if (results.data) {
-      return initializeFilters(results.data, searchInputs);
+    if (results.flightsTo) {
+      return initializeFilters(results.flightsTo, searchInputs);
     }
     return null;
-  }, [results.data, searchInputs]);
+  }, [results.flightsTo, searchInputs]);
 
 
   useEffect(() => {
@@ -136,9 +136,9 @@ const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
 
   useEffect(()=> {
 
-    if (!results.data) return;
+    if (!results.flightsTo) return;
 
-    let newFlights = results['data']
+    let newFlights = results['flightsTo']
 
     const areAllAirlinesSelected = Object.values(airlinesFilter).every(selected => selected);
     if (!areAllAirlinesSelected) {

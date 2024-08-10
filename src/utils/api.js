@@ -24,3 +24,25 @@ export async function makeGPTRequests(userMessage, prevAIMessage, inputObjString
   }
 
 }
+
+
+export async function getFlightResults(originCode, destinationCode, tripType) {
+
+  const postInput = { 
+    'originCode':originCode, 
+    'destinationCode':destinationCode, 
+    'tripType':tripType
+  };
+
+  console.log(postInput)
+
+  try {
+    const data = await axios.post(process.env.REACT_APP_BACKEND_URL + "/getFlightResults", postInput)
+    .then(res => res.data);
+    return data
+  } catch (error) {
+    console.error("Error making API call:", error);
+    return {"Error": error}
+  }
+
+}

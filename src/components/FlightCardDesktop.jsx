@@ -10,13 +10,15 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import {useInput} from './InputContext.js'
-import {useResults} from './ResultsContext.js'
 
 
-export default function FlightCardDesktop({ flightData, expanded, handleExpandClick, memoizedStartTime, memoizedEndTime, memoizedDuration, stopsDetailText}) {
+export default function FlightCardDesktop({ 
+  flightData, expanded, 
+  handleExpandClick, memoizedStartTime, 
+  memoizedEndTime, memoizedDuration, 
+  stopsDetailText, isReturnFlightPage}) {
 
   const {searchInputs} = useInput({})
-  const {results} = useResults({})
 
   return (
   <Grid container spacing={2} alignItems="center">
@@ -61,7 +63,7 @@ export default function FlightCardDesktop({ flightData, expanded, handleExpandCl
             {memoizedDuration}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            MIA–JFK
+            {!isReturnFlightPage ? `${searchInputs.flying_from}–${searchInputs.flying_to}` : `${searchInputs.flying_to}–${searchInputs.flying_from}`}
           </Typography>
         </Grid>
         <Grid item xs={2}>
@@ -76,7 +78,7 @@ export default function FlightCardDesktop({ flightData, expanded, handleExpandCl
     )}
     <Grid item xs={3}>
       <Typography variant="h7" fontWeight="bold">
-        ${flightData.totalFlightCost} <Typography sx={{display:"inline"}}> / {searchInputs['trip_type']==="Round-trip" ? "departing" : "one-way"} </Typography>
+        ${flightData.totalFlightCost} <Typography sx={{display:"inline"}}> / {searchInputs['trip_type']==="Round-trip" ? (isReturnFlightPage ? "returning" : "departing") : "one-way"} </Typography>
       </Typography>
       <Typography variant="body2" color="text.secondary">
         Flight Cost: ${flightData.adjTripCost}, Bag Fees: ${flightData.bagFees + flightData.checkedFees}

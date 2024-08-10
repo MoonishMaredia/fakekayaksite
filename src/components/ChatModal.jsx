@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { marked } from 'marked'; // Import marked for Markdown parsing
-import { makeGPTRequests } from '../utils/api';
+import { makeGPTRequests, getFlightResults } from '../utils/api';
 import { getLandingChatHTML, getLandingChatMessage } from '../utils/other';
 import {airpotCodes} from '../airportcodes.js'
 import { useNavigate } from 'react-router-dom';
@@ -27,10 +27,11 @@ const ChatModal = ({
     passengers, setPassengers,
     seatType, setSeatType,
     carryOnBags, setCarryOnBags,
-    checkedBags, setCheckedBags 
+    checkedBags, setCheckedBags,
+    handleSubmit, getCompletedObject,
+    fieldErrors, setFieldErrors 
   }) => {
 
-  const navigate = useNavigate();
   const {searchInputs, setSearchInputs} = useInput({});
   const {results, setResults} = useResults({});
   const [aiMessages, setAIMessages] = useState([getLandingChatMessage()])
@@ -38,44 +39,6 @@ const ChatModal = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const messagesEndRef = useRef(null);
-  const [fieldErrors, setFieldErrors] = useState({
-    "trip_type":"",
-    "flying_from":"",
-    "flying_to":"",
-    "start_date":"",
-    "return_date":"",
-    "num_passengers":"",
-    "num_carryOn":"",
-    "num_checked":""
-  })
-
-  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-  async function handleSubmit() {
-    onClose()
-    setSearchInputs(getCompletedObject())
-    setLoading(true)
-    await sleep(7000)
-    // set later once api is live
-    // setResults(flightResults)
-    navigate('/results')
-  }
-
-  function getCompletedObject() {
-    const objStr = {
-      "trip_type": tripType,
-      "flying_from": flyingFrom!=="" ? flyingFrom : fieldErrors.flying_from,
-      "flying_to": flyingTo!=="" ? flyingTo : fieldErrors.flying_to,
-      "start_date": startDate!==null  ? startDate : fieldErrors.start_date,
-      "return_date": returnDate!==null ? returnDate : fieldErrors.return_date,
-      "num_passengers": passengers!==null ? passengers : fieldErrors.num_passengers,
-      "seat_type": seatType!==null ? seatType : fieldErrors.seatType,
-      "num_carryOn": carryOnBags!==null ? carryOnBags : fieldErrors.num_carryOn,
-      "num_checked": checkedBags!==null ? checkedBags : fieldErrors.num_checked
-    };
-
-    return objStr
-  }
 
   function verifyMinMaxType(field, arg) {
     const parsed = parseInt(arg);

@@ -32,6 +32,7 @@ const SearchForm = ({
     seatType, setSeatType,
     carryOnBags, setCarryOnBags,
     checkedBags, setCheckedBags,
+    handleSubmit
   }) => {
 
   const [passengerAnchorEl, setPassengerAnchorEl] = useState(null);
@@ -71,7 +72,7 @@ const SearchForm = ({
     if (startDate < new Date()) return false;
     if (tripType === 'Round-trip' && returnDate < startDate) return false;
     if (passengers < 1 || passengers > 10) return false;
-    if (!['Economy', 'Business', 'First'].includes(seatType)) return false;
+    if (!['Economy', 'Business'].includes(seatType)) return false;
     if (carryOnBags < 0 || carryOnBags > 1) return false;
     if (checkedBags < 0 || checkedBags > 5) return false;
   
@@ -233,6 +234,7 @@ const SearchForm = ({
         </Box>
       </Popover>
       <Button
+          onClick={handleSubmit}
           variant="contained"
           fullWidth
           size="large"
@@ -278,7 +280,6 @@ function PassengerSelector({passengers, setPassengers, seatType, setSeatType}) {
         >
           <MenuItem value="Economy">Economy</MenuItem>
           <MenuItem value="Business">Business</MenuItem>
-          <MenuItem value="First">First</MenuItem>
         </Select>
       </FormControl>
     </Box>
