@@ -9,31 +9,14 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { marked } from 'marked'; // Import marked for Markdown parsing
-import { makeGPTRequests, getFlightResults } from '../utils/api';
+import { makeGPTRequests} from '../utils/api';
 import { getLandingChatHTML, getLandingChatMessage } from '../utils/other';
 import {airpotCodes} from '../airportcodes.js'
-import { useNavigate } from 'react-router-dom';
 import { useInput } from './InputContext'
-import { useResults } from './ResultsContext'
 
-
-const ChatModal = ({ 
-    open, onClose, setLoading,
-    tripType, setTripType,
-    flyingFrom, setFlyingFrom,
-    flyingTo, setFlyingTo,
-    startDate, setStartDate,
-    returnDate, setReturnDate,
-    passengers, setPassengers,
-    seatType, setSeatType,
-    carryOnBags, setCarryOnBags,
-    checkedBags, setCheckedBags,
-    handleSubmit, getCompletedObject,
-    fieldErrors, setFieldErrors 
-  }) => {
+const ChatModal = ({open, onClose, handleSubmit, getCompletedObject, fieldErrors, setFieldErrors}) => {
 
   const {searchInputs, setSearchInputs} = useInput({});
-  const {results, setResults} = useResults({});
   const [aiMessages, setAIMessages] = useState([getLandingChatMessage()])
   const [messages, setMessages] = useState([{sender: 'ai', text: getLandingChatHTML()}]);
   const theme = useTheme();
@@ -61,7 +44,7 @@ const ChatModal = ({
 
   function verifyAirportCode(airportSource, arg) {
     if(airportSource==="from") {
-      if(arg===flyingTo) {
+      if(arg===searchInputs.flying_to) {
         setFieldErrors({...fieldErrors, "flying_from":"#ERROR: flying_from airport is the same as flying_to airport"})
         return {"msg":400}
       } else if(!airpotCodes.hasOwnProperty(arg)) {
@@ -72,7 +55,7 @@ const ChatModal = ({
         return {"msg":200, "arg":arg}
       }
     } else if(airportSource==="to") {
-      if(flyingFrom===arg) {
+      if(searchInputs.flying_from===arg) {
         setFieldErrors({...fieldErrors, "flying_to":"#ERROR: flying_to airport is the same as flying_from airport"})
         return {"msg":400}
       } else if(!airpotCodes.hasOwnProperty(arg)) {
@@ -99,7 +82,7 @@ const ChatModal = ({
         return {"msg":200, "arg":utcDate.toISOString()}
       }
     } else if(dateType==="return_date") {
-        if(startDate & new Date(utcDate.toISOString()) < startDate)  {
+        if(searchInputs.start_date & new Date(utcDate.toISOString()) < searchInputs.start_date)  {
           setFieldErrors({...fieldErrors, "start_date":"#ERROR: Start date is earlier than current date"})
           return {"msg":400}
       } else {
@@ -113,74 +96,75 @@ const ChatModal = ({
     if(setter==="setTripType") {
       if(!['Round-trip','One-way'].includes(arg)) {
         setFieldErrors({...fieldErrors, "trip_type":"#ERROR: Invalid value. It should be either Round-trip or One-way"})
-        setTripType("")
+        setSearchInputs(prev=>({...prev, 'trip_type': ""}))
       } else {
-        setTripType(arg)
+        setSearchInputs(prev=>({...prev, 'trip_type': arg}))
       }
 
     } else if (setter==="setFlyingFrom") {
       const res = verifyAirportCode("from", arg)
       if(res.msg===200) {
-        setFlyingFrom(arg)
+        setSearchInputs(prev=>({...prev, 'flying_from': arg}))
       } else {
-        setFlyingFrom("")
+        setSearchInputs(prev=>({...prev, 'flying_from': ""}))
       }
 
     } else if(setter==="setFlyingTo") {
       const res = verifyAirportCode("to", arg)
       if(res.msg===200) {
-        setFlyingTo(arg)
+        setSearchInputs(prev=>({...prev, 'flying_to': arg}))
       } else {
-        setFlyingTo("")
+        setSearchInputs(prev=>({...prev, 'flying_to': ""}))
       }
 
 
     } else if(setter==="setStartDate") {
       const res = verifyDate("start_date", arg)
       if(res.msg===200) {
-        setStartDate(new Date(res.arg))
+        setSearchInputs(prev=>({...prev, 'start_date': res.arg}))
       } else {
-        setStartDate(null)
+        setSearchInputs(prev=>({...prev, 'start_date': null}))
       }
 
     } else if(setter==="setReturnDate") {
       const res = verifyDate("return_date", arg)
       if(res.msg===200) {
-        setReturnDate(new Date(res.arg))
+        setSearchInputs(prev=>({...prev, 'return_date': res.arg}))
       } else {
-        setReturnDate(null)
+        setSearchInputs(prev=>({...prev, 'return_date': null}))
       }
 
     } else if(setter==="setPassengers") {
       const res = verifyMinMaxType("num_passengers", arg)
       if(res.msg===200) {
-        setPassengers(parseInt(res.arg))
+        setSearchInputs(prev=>({...prev, 'num_passengers': parseInt(res.arg)}))
       } else {
-        setPassengers(null)
+        setSearchInputs(prev=>({...prev, 'num_passengers': null}))
       }
     
-    } else if(setter="setSeatType") {
+    } else if(setter==="setSeatType") {
      if(!['Economy','Business'].includes(arg)) {
       setFieldErrors({...fieldErrors, "seat_type":"#ERROR: Invalid value. It should be either Economy or Business"})
-      setSeatType("")
+      setSearchInputs(prev=>({...prev, 'seat_type': ""}))
     } else {
-      setSeatType(arg)
+      setSearchInputs(prev=>({...prev, 'seat_type': arg}))
     }
 
     } else if(setter==="setCarryOnBags") {
       const res = verifyMinMaxType("num_carryOn", arg)
       if(res.msg===200) {
-        setCarryOnBags(parseInt(res.arg))
+        setSearchInputs(prev=>({...prev, 'num_carryOn': parseInt(res.arg)}))
+
       } else {
-        setCarryOnBags(null)
+        setSearchInputs(prev=>({...prev, 'num_carryOn': null}))
       }
 
     } else if(setter==="setCheckedBags") {
       const res = verifyMinMaxType("num_checked", arg)
       if(res.msg===200) {
-        setCheckedBags(parseInt(res.arg))
+        setSearchInputs(prev=>({...prev, 'num_checked': parseInt(res.arg)}))
       } else {
-        setCheckedBags(null)
+        setSearchInputs(prev=>({...prev, 'num_checked': null}))
       }
       
     } else {

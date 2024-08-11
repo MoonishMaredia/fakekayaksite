@@ -15,26 +15,22 @@ import {
   FormControl,
   InputLabel
 } from '@mui/material';
+import AirportAutocomplete from './AirportAutocomplete';
+import PassengerSelector from './PassengerSelector';
+import BagSelector from './BagSelector';
 import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 import FlightLandIcon from '@mui/icons-material/FlightLand';
 import EventIcon from '@mui/icons-material/Event';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import LuggageIcon from '@mui/icons-material/Luggage';
 import {airpotCodes} from '../airportcodes.js'
+import {useInput} from './InputContext.js'
 
 const SearchForm = ({
-    tripType, setTripType,
-    flyingFrom, setFlyingFrom,
-    flyingTo, setFlyingTo,
-    startDate, setStartDate,
-    returnDate, setReturnDate,
-    passengers, setPassengers,
-    seatType, setSeatType,
-    carryOnBags, setCarryOnBags,
-    checkedBags, setCheckedBags,
     handleSubmit
   }) => {
 
+  const {searchInputs, setSearchInputs} = useInput({})
   const [passengerAnchorEl, setPassengerAnchorEl] = useState(null);
   const [bagAnchorEl, setBagAnchorEl] = useState(null);
 
@@ -56,32 +52,32 @@ const SearchForm = ({
 
   const isFormValid = () => {
     // Check for empty strings, null or undefined
-    if (!tripType || !flyingFrom || !flyingTo || !startDate || !passengers || !seatType || carryOnBags === null || checkedBags === null) {
+    if (!searchInputs.trip_type || !searchInputs.flying_from || !searchInputs.flying_to || !searchInputs.start_date || !searchInputs.num_passengers || !searchInputs.seat_type || searchInputs.num_carryOn === null || searchInputs.num_checked === null) {
       return false;
     }
   
     // Check for Round-trip specific condition
-    if (tripType === 'Round-trip' && !returnDate) {
+    if (searchInputs.trip_type === 'Round-trip' && !searchInputs.return_date) {
       return false;
     }
   
     // Check implicit conditions from the provided functions
-    if (!['Round-trip', 'One-way'].includes(tripType)) return false;
-    if (!airpotCodes.hasOwnProperty(flyingFrom) || !airpotCodes.hasOwnProperty(flyingTo)) return false;
-    if (flyingFrom === flyingTo) return false;
-    if (startDate < new Date()) return false;
-    if (tripType === 'Round-trip' && returnDate < startDate) return false;
-    if (passengers < 1 || passengers > 10) return false;
-    if (!['Economy', 'Business'].includes(seatType)) return false;
-    if (carryOnBags < 0 || carryOnBags > 1) return false;
-    if (checkedBags < 0 || checkedBags > 5) return false;
+    if (!['Round-trip', 'One-way'].includes(searchInputs.trip_type)) return false;
+    if (!airpotCodes.hasOwnProperty(searchInputs.flying_from) || !airpotCodes.hasOwnProperty(searchInputs.flying_to)) return false;
+    if (searchInputs.flying_from === searchInputs.flying_to) return false;
+    if (searchInputs.start_date < new Date()) return false;
+    if (searchInputs.trip_type === 'Round-trip' && searchInputs.return_date < searchInputs.start_date) return false;
+    if (searchInputs.num_passengers < 1 || searchInputs.num_passengers > 10) return false;
+    if (!['Economy', 'Business'].includes(searchInputs.seat_type)) return false;
+    if (searchInputs.num_carryOn < 0 || searchInputs.num_carryOn > 1) return false;
+    if (searchInputs.num_checked < 0 || searchInputs.num_checked > 5) return false;
   
     return true;
   };
 
   const passengerOpen = Boolean(passengerAnchorEl);
   const bagOpen = Boolean(bagAnchorEl);
-  const totalBags = carryOnBags + checkedBags;
+  const totalBags = searchInputs.num_carryOn + searchInputs.num_checked;
 
   return (
     <>
@@ -90,8 +86,8 @@ const SearchForm = ({
       </Typography>
       <Box sx={{ mb: 2, mt: 6, display: 'flex', alignItems: 'center' }}>
       <Select
-          value={tripType}
-          onChange={(e) => setTripType(e.target.value)}
+          value={searchInputs.trip_type}
+          onChange={(e) => setSearchInputs(prev=>({...prev, trip_type: e.target.value}))}
           displayEmpty
           renderValue={(selected) => {
             if (selected.length === 0) {
@@ -118,35 +114,24 @@ const SearchForm = ({
         />
       </Box>
       <Box sx={{ mb: 2 }}>
-        <TextField
-          fullWidth
-          value={flyingFrom}
-          onChange={(e) => setFlyingFrom(e.target.value)}
-          variant="outlined"
-          placeholder="Enter US airport flying from ..."
-          InputProps={{
-            startAdornment: <FlightTakeoffIcon sx={{ mr: 1 }} />,
-          }}
-          sx={{ mb: 2 }}
+        <AirportAutocomplete
+          placeholderText={"Flying From..."}
+          takeOff={true}
         />
-        <TextField
-          fullWidth
-          value={flyingTo}
-          onChange={(e) => setFlyingTo(e.target.value)}
-          variant="outlined"
-          placeholder="Enter US airport flying to ..."
-          InputProps={{
-            startAdornment: <FlightLandIcon sx={{ mr: 1 }} />,
-          }}
+      </Box>
+      <Box sx={{ mb: 2 }}>
+        <AirportAutocomplete
+          placeholderText={"Flying To..."}
+          takeOff={false}
         />
       </Box>
       <Box sx={{ mb: 2, display: 'flex', gap: 2 }}>
         <DatePicker
-          selected={startDate}
-          onChange={(date) => setStartDate(date)}
+          selected={searchInputs.start_date}
+          onChange={(date) => setSearchInputs(prev=>({...prev, 'start_date': date}))}
           selectsStart
-          startDate={startDate}
-          endDate={returnDate}
+          startDate={searchInputs.start_date}
+          endDate={searchInputs.return_date}
           placeholderText="Start Date"
           customInput={
             <TextField
@@ -158,14 +143,14 @@ const SearchForm = ({
             />
           }
         />
-        {tripType === 'Round-trip' && (
+        {searchInputs.trip_type === 'Round-trip' && (
           <DatePicker
-            selected={returnDate}
-            onChange={(date) => setReturnDate(date)}
+            selected={searchInputs.return_date}
+            onChange={(date) => setSearchInputs(prev=>({...prev, "return_date": date}))}
             selectsEnd
-            startDate={returnDate}
-            endDate={returnDate}
-            minDate={startDate}
+            startDate={searchInputs.return_date}
+            endDate={searchInputs.return_date}
+            minDate={searchInputs.start_date}
             placeholderText="End Date"
             customInput={
               <TextField
@@ -183,7 +168,7 @@ const SearchForm = ({
         <TextField
           fullWidth
           variant="outlined"
-          value={`${passengers ? passengers : 0} passenger${passengers > 1 ? 's' : ''}, ${seatType}`}
+          value={`${searchInputs.num_passengers ? searchInputs.num_passengers : 0} passenger${searchInputs.num_passengers > 1 ? 's' : ''}, ${searchInputs.seat_type}`}
           InputProps={{
             startAdornment: <PersonOutlineIcon sx={{ mr: 1 }} />,
             readOnly: true,
@@ -198,12 +183,7 @@ const SearchForm = ({
             vertical: 'bottom',
             horizontal: 'left',
           }}>
-          <PassengerSelector
-            passengers={passengers}
-            setPassengers={setPassengers}
-            seatType={seatType}
-            setSeatType={setSeatType}
-          />
+          <PassengerSelector/>
         </Popover>
       </Box>
       <Popover
@@ -215,23 +195,7 @@ const SearchForm = ({
           horizontal: 'left',
         }}
       >
-        <Box sx={{ p: 2 }}>
-          <Typography variant="subtitle1" sx={{ mb: 1 }}>Baggage per passenger</Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-            <LuggageIcon />
-            <Typography sx={{ mx: 2 }}>Carry-on bag</Typography>
-            <IconButton onClick={() => setCarryOnBags(Math.max(0, carryOnBags - 1))}>-</IconButton>
-            <Typography sx={{ mx: 2 }}>{carryOnBags}</Typography>
-            <IconButton onClick={() => setCarryOnBags(Math.min(1, carryOnBags + 1))}>+</IconButton>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <LuggageIcon />
-            <Typography sx={{ mx: 2 }}>Checked bag</Typography>
-            <IconButton onClick={() => setCheckedBags(Math.max(0, checkedBags - 1))}>-</IconButton>
-            <Typography sx={{ mx: 2 }}>{checkedBags}</Typography>
-            <IconButton onClick={() => setCheckedBags(Math.min(3, checkedBags + 1))}>+</IconButton>
-          </Box>
-        </Box>
+        <BagSelector/>
       </Popover>
       <Button
           onClick={handleSubmit}
@@ -255,33 +219,3 @@ const SearchForm = ({
 };
 
 export default SearchForm;
-
-
-function PassengerSelector({passengers, setPassengers, seatType, setSeatType}) {
-  return (
-    <Box sx={{ p: 2, minWidth: 250 }}>
-      <Typography variant="subtitle1" gutterBottom>Passengers</Typography>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-        <IconButton onClick={() => setPassengers(Math.max(1, passengers - 1))}>
-          -
-        </IconButton>
-        <Typography sx={{ mx: 2 }}>{passengers}</Typography>
-        <IconButton onClick={() => setPassengers(Math.min(10, passengers + 1))}>
-          +
-        </IconButton>
-      </Box>
-      <FormControl fullWidth>
-        <InputLabel id="seat-type-label">Seat Type</InputLabel>
-        <Select
-          labelId="seat-type-label"
-          value={seatType}
-          label="Seat Type"
-          onChange={(e) => setSeatType(e.target.value)}
-        >
-          <MenuItem value="Economy">Economy</MenuItem>
-          <MenuItem value="Business">Business</MenuItem>
-        </Select>
-      </FormControl>
-    </Box>
-  );
-};

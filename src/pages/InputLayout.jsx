@@ -14,20 +14,10 @@ const InputLayout = () => {
 
   const navigate = useNavigate();
   const {searchInputs, setSearchInputs} = useInput({});
-  const {results, setResults} = useResults({});
+  const {setResults} = useResults({});
   const [isChatOpen, setIsChatOpen] = useState(false);
   const handleChatOpen = () => setIsChatOpen(true);
   const handleChatClose = () => setIsChatOpen(false);
-
-  const [tripType, setTripType] = useState("");
-  const [flyingFrom, setFlyingFrom] = useState("");
-  const [flyingTo, setFlyingTo] = useState("");
-  const [startDate, setStartDate] = useState(null);
-  const [returnDate, setReturnDate] = useState(null);
-  const [passengers, setPassengers] = useState(null)
-  const [seatType, setSeatType] = useState("Economy")
-  const [carryOnBags, setCarryOnBags] = useState(1);
-  const [checkedBags, setCheckedBags] = useState(0);
   const [loading, setLoading] = useState(false)
   const [fieldErrors, setFieldErrors] = useState({
     "trip_type":"",
@@ -44,15 +34,15 @@ const InputLayout = () => {
 
   function getCompletedObject() {
     const objStr = {
-      "trip_type": tripType,
-      "flying_from": flyingFrom!=="" ? flyingFrom : fieldErrors.flying_from,
-      "flying_to": flyingTo!=="" ? flyingTo : fieldErrors.flying_to,
-      "start_date": startDate!==null  ? startDate : fieldErrors.start_date,
-      "return_date": returnDate!==null ? returnDate : fieldErrors.return_date,
-      "num_passengers": passengers!==null ? passengers : fieldErrors.num_passengers,
-      "seat_type": seatType!==null ? seatType : fieldErrors.seatType,
-      "num_carryOn": carryOnBags!==null ? carryOnBags : fieldErrors.num_carryOn,
-      "num_checked": checkedBags!==null ? checkedBags : fieldErrors.num_checked
+      "trip_type": searchInputs.trip_type,
+      "flying_from": searchInputs.flying_from !=="" ? searchInputs.flying_from : fieldErrors.flying_from,
+      "flying_to": searchInputs.flying_to !=="" ? searchInputs.flying_to : fieldErrors.flying_to,
+      "start_date": searchInputs.start_date !==null  ? searchInputs.start_date : fieldErrors.start_date,
+      "return_date": searchInputs.return_date !==null ? searchInputs.return_date : fieldErrors.return_date,
+      "num_passengers": searchInputs.num_passengers !==null ? searchInputs.num_passengers : fieldErrors.num_passengers,
+      "seat_type": searchInputs.seat_type !==null ? searchInputs.seat_type : fieldErrors.seatType,
+      "num_carryOn": searchInputs.num_carryOn !==null ? searchInputs.num_carryOn : fieldErrors.num_carryOn,
+      "num_checked": searchInputs.num_checked !==null ? searchInputs.num_checked : fieldErrors.num_checked
     };
 
     return objStr
@@ -62,7 +52,7 @@ const InputLayout = () => {
     handleChatClose()
     setSearchInputs(getCompletedObject())
     setLoading(true)
-    const resultsData = await getFlightResults(flyingFrom, flyingTo, tripType)
+    const resultsData = await getFlightResults(searchInputs.flying_from, searchInputs.flying_to, searchInputs.trip_type)
     setResults(resultsData)
     await sleep(1000)
     navigate('/results')
@@ -76,51 +66,13 @@ const InputLayout = () => {
           {loading && <LoadingIndicator />}
           <Container maxWidth="sm" sx={{ mt: 4 }}>
           <SearchForm 
-            tripType={tripType}
-            setTripType={setTripType}
-            flyingFrom={flyingFrom}
-            setFlyingFrom={setFlyingFrom}
-            flyingTo={flyingTo}
-            setFlyingTo={setFlyingTo}
-            startDate={startDate}
-            setStartDate={setStartDate}
-            returnDate={returnDate}
-            setReturnDate={setReturnDate}
-            passengers={passengers}
-            setPassengers={setPassengers}
-            seatType={seatType}
-            setSeatType={setSeatType}
-            carryOnBags={carryOnBags}
-            setCarryOnBags={setCarryOnBags}
-            checkedBags={checkedBags}
-            setCheckedBags={setCheckedBags}
-            setLoading={setLoading}
-            handleSubmit={handleSubmit}
-            getCompletedObject={getCompletedObject}/>
+            handleSubmit={handleSubmit}/>
           </Container>
         </Box>
       </Box>
       <ChatModal 
       open={isChatOpen} 
       onClose={handleChatClose} 
-      tripType={tripType}
-      setTripType={setTripType}
-      flyingFrom={flyingFrom}
-      setFlyingFrom={setFlyingFrom}
-      flyingTo={flyingTo}
-      setFlyingTo={setFlyingTo}
-      startDate={startDate}
-      setStartDate={setStartDate}
-      returnDate={returnDate}
-      setReturnDate={setReturnDate}
-      passengers={passengers}
-      setPassengers={setPassengers}
-      seatType={seatType}
-      setSeatType={setSeatType}
-      carryOnBags={carryOnBags}
-      setCarryOnBags={setCarryOnBags}
-      checkedBags={checkedBags}
-      setCheckedBags={setCheckedBags}
       setLoading={setLoading}
       handleSubmit={handleSubmit}
       getCompletedObject={getCompletedObject}

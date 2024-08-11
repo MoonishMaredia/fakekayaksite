@@ -33,11 +33,6 @@ const customStyles = {
   };
 
 const TripOptionsBar = ({ 
-  tripType, setTripType, 
-  passengers, setPassengers, 
-  seatType, setSeatType, 
-  carryOnBags, setCarryOnBags, 
-  checkedBags, setCheckedBags,
   isMobile 
 }) => {
 
@@ -142,12 +137,7 @@ const TripOptionsBar = ({
           horizontal: 'left',
         }}
       >
-        <PassengerSelector
-          passengers={passengers}
-          setPassengers={setPassengers}
-          seatType={seatType}
-          setSeatType={setSeatType}
-        />
+        <PassengerSelector/>
       </Popover>
       <Popover
         open={bagOpen}
@@ -158,12 +148,7 @@ const TripOptionsBar = ({
           horizontal: 'left',
         }}
       >
-        <BagSelector
-          carryOnBags={carryOnBags}
-          setCarryOnBags={setCarryOnBags}
-          checkedBags={checkedBags}
-          setCheckedBags={setCheckedBags}
-        />
+        <BagSelector/>
       </Popover>
     </Box>
   );
