@@ -23,3 +23,26 @@ p {
   padding-bottom: 0;
   font-weight: 500;
 }
+
+.departing-flight-text {
+  color: rgb(2 132 199);
+  text-align: center;
+  margin-left: 10px;
+}
+
+.departing-flight-text > .text2 {
+  color: black;
+  font-size: 18px;
+  margin-left: 12px;
+}
+
+.departing-flight-text:hover {
+  .text2 {
+    display: inline;
+  }
+}
+
+.text3 {
+  color: black;
+  margin-left: 10px;
+}

@@ -5,20 +5,23 @@ import BookingLayout from './pages/BookingLayout';
 import { Route, Routes, Navigate } from "react-router-dom"
 import { InputProvider } from './components/InputContext'
 import { ResultsProvider} from './components/ResultsContext'
+import { BookingProvider } from './components/BookingContext';
 
 function App() {
   return (
     <main className="App">
+      <BookingProvider>
       <InputProvider>
       <ResultsProvider> 
       <Routes>
-        <Route exact path= "/" element={<Navigate replace to="/inputs"/>}></Route>
-        <Route path= "inputs" element={<InputLayout />} />
+        <Route exact path= "/" element={<Navigate replace to="/results"/>}></Route>
+        {/* <Route path= "inputs" element={<InputLayout />} /> */}
         <Route path= "results" element={<ResultsLayout />} />
         <Route path= "confirmation" element={<BookingLayout />} />
       </Routes>
       </ResultsProvider>
       </InputProvider>
+      </BookingProvider>
     </main>
   );
 }

@@ -9,6 +9,7 @@ import SelectedFlightPill from '../components/SelectedFlightPill';
 import HeaderLayout from '../components/HeaderLayout';
 import { useInput } from '../components/InputContext.js';
 import { useResults } from '../components/ResultsContext';
+import { useBooking } from '../components/BookingContext'
 import { useNavigate } from 'react-router-dom';
 
 
@@ -45,6 +46,8 @@ const getCheckedFees = (airline, numBags) => {
 const FlightResultsPage = () => {
   const { searchInputs } = useInput({});
   const { results, setResults } = useResults({});
+  const { bookingDetails, setBookingDetails } = useBooking({});
+
   const navigate = useNavigate();
   const [displayedFlights, setDisplayedFlights] = useState(results['data']);
   const [sortMethod, setSortMethod] = useState("Lowest Total Price");
@@ -57,30 +60,40 @@ const FlightResultsPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  // console.log(departFlight)
+  
+  function handleSort(value) {
+    setSortMethod(value)
+    setDisplayedFlights(sortFlights(displayedFlights, value))
+  }
+
 
   function handleFlightSelection(flightId, airline, airlineLogoUrl) {
-    if(!isReturnFlightPage) {
+    if(searchInputs.trip_type==="Round-trip" && !isReturnFlightPage) {
+      setBookingDetails(prev=>({...prev, "departing":flightId}))
       setDepartFlight(
         {flightId,
           airline,
           airlineLogoUrl
         })
-      if(searchInputs.trip_type==="Round-trip") {
         setIsReturnFlightPage(true)
-      } else {
-        navigate('/confirmation')
-      }
-      
-    } else {
-      setReturnFlight(
-        {flightId,
+      } else if(searchInputs.trip_type==="One-way" && !isReturnFlightPage) {
+        setBookingDetails(prev=>({...prev, "departing":flightId}))
+        setDepartFlight(
+          {flightId,
           airline,
           airlineLogoUrl
         })
-      navigate('/confirmation')
+        navigate('/confirmation')
+      } else if (searchInputs.trip_type==="Round-trip" && isReturnFlightPage) {
+          setBookingDetails(prev=>({...prev, "returning":flightId}))
+          setReturnFlight(
+            {flightId,
+              airline,
+              airlineLogoUrl
+            })
+          navigate('/confirmation')
+      }
     }
-  }
 
   useEffect(() => {
 
@@ -102,29 +115,26 @@ const FlightResultsPage = () => {
     
         setResults(prev=>({...prev, 'flightsTo':flightArray}))
         setDisplayedFlights(flightArray)
-    }
+    }}, []);
 
-    else {
-        const flightArray = results.flightsReturn.map(flight => {
-        const adjTripCost = flight.trip_cost * searchInputs.num_passengers * seatScalar[searchInputs.seat_type];
-        const bagFees = getCarryFees(flight.airline, flight.num_carryOn) * searchInputs.num_passengers;
-        const checkedFees = getCheckedFees(flight.airline, searchInputs.num_checked) * searchInputs.num_passengers;
-          
-          return {
-            ...flight,
-            adjTripCost: adjTripCost, // Assign directly
-            bagFees: bagFees, // Assign directly
-            checkedFees: checkedFees, // Assign directly
-            totalFlightCost: adjTripCost + bagFees + checkedFees // Calculate total cost
-          };
-        });
-    
-        setResults(prev=>({...prev, 'flightsReturn':flightArray}))
-        setDisplayedFlights(flightArray)
-    }
+    useEffect(() => {
+      const flightArray = results.flightsReturn.map(flight => {
+      const adjTripCost = flight.trip_cost * searchInputs.num_passengers * seatScalar[searchInputs.seat_type];
+      const bagFees = getCarryFees(flight.airline, flight.num_carryOn) * searchInputs.num_passengers;
+      const checkedFees = getCheckedFees(flight.airline, searchInputs.num_checked) * searchInputs.num_passengers;
+        
+        return {
+          ...flight,
+          adjTripCost: adjTripCost, // Assign directly
+          bagFees: bagFees, // Assign directly
+          checkedFees: checkedFees, // Assign directly
+          totalFlightCost: adjTripCost + bagFees + checkedFees // Calculate total cost
+        };
+      })
 
+      setResults(prev=>({...prev, 'flightsReturn':flightArray}))
 
-  }, []);
+    },[]);
 
   useEffect(() => {
 
@@ -165,7 +175,7 @@ const FlightResultsPage = () => {
         setDisplayedFlights(sortFlights(flightArray, sortMethod))
     }
 
-  }, [searchInputs.num_passengers, searchInputs.seat_type, searchInputs.num_checked, searchInputs.num_carryOn, sortMethod]);
+  }, [searchInputs.num_passengers, searchInputs.seat_type, searchInputs.num_checked, searchInputs.num_carryOn]);
 
   useEffect(()=> {
     if(isReturnFlightPage) {
@@ -198,13 +208,13 @@ const FlightResultsPage = () => {
         <Box sx={{ display: 'flex', flexDirection: 'column', maxWidth: isMobile ? '100%' : '82%', gap: 2 }}>
         {isReturnFlightPage &&
             <SelectedFlightPill
-              departFlight={departFlight}/>
+              departFlight={departFlight}
+              setIsReturnFlightPage={setIsReturnFlightPage}/>
           }
-          <SortTitleBar sortMethod={sortMethod} 
-          setSortMethod={setSortMethod} 
+          <SortTitleBar 
+          sortMethod={sortMethod} 
+          handleSort={handleSort} 
           isMobile={isMobile} 
-          displayedFlights={displayedFlights} 
-          setDisplayedFlights={setDisplayedFlights}
           isReturnFlightPage={isReturnFlightPage}/>
           {displayedFlights.map((flight, index) => (
             <FlightCard 

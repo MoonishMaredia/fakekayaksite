@@ -4,15 +4,11 @@ import _ from 'lodash'
 
 export async function makeGPTRequests(userMessage, prevAIMessage, inputObjString) {
 
-  // console.log("User Message: ", userMessage)
-  // console.log("prevAIMessage: ", prevAIMessage)
-  // console.log("inputObjString: ", inputObjString)
   const postInput = { 
     userMessage, 
     prevAIMessage, 
     inputObjString: JSON.stringify(inputObjString)
   };
-  // console.log("PostInput:", postInput)
 
   try {
     const data = await axios.post(process.env.REACT_APP_BACKEND_URL + "/makeGPTRequests", postInput)
@@ -33,8 +29,6 @@ export async function getFlightResults(originCode, destinationCode, tripType) {
     'destinationCode':destinationCode, 
     'tripType':tripType
   };
-
-  console.log(postInput)
 
   try {
     const data = await axios.post(process.env.REACT_APP_BACKEND_URL + "/getFlightResults", postInput)

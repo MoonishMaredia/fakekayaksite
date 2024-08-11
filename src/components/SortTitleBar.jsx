@@ -13,12 +13,12 @@ const customStyles = {
     },
 }
 
-export default function SortTitleBar({isMobile, sortMethod, setSortMethod, isReturnFlightPage}) {
+export default function SortTitleBar({isMobile, sortMethod, handleSort, isReturnFlightPage}) {
 
     return (
         <Box sx={{
             display:'flex', flexDirection:'row', justifyContent:'space-between', alignItems: 'center'}}>
-        <Typography variant={isMobile ? "subtitle4" : "h6"} sx={{ mb: 1, alignSelf:"flex-end" }}> {isMobile ? "" : "Select a"} {isReturnFlightPage ? "Returning Flight" : "Departing Flight"} {isMobile ? "s" : ""}</Typography>
+        <Typography variant={isMobile ? "subtitle4" : "h6"} sx={{ mb: 1, alignSelf:"flex-end" }}> {isMobile ? "" : ""} {isReturnFlightPage ? "Returning flights" : "Departing flights"}</Typography>
         <Box sx={{display:'flex', 
             flexDirection:'column', 
             alignItems:'left',
@@ -34,7 +34,7 @@ export default function SortTitleBar({isMobile, sortMethod, setSortMethod, isRet
                 }}
             select
             value={sortMethod}
-            onChange={(e) => setSortMethod(e.target.value)}
+            onChange={(e) => handleSort(e.target.value)}
             SelectProps={{
                 IconComponent: () => <ArrowDropDown sx={{ color:"gray"}} fontSize="small" />,
             }}
