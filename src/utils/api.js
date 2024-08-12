@@ -21,6 +21,24 @@ export async function makeGPTRequests(userMessage, prevAIMessage, inputObjString
 
 }
 
+export async function makeTriageRequests(userMessage, prevAIMessage) {
+
+  const postInput = { 
+    userMessage, 
+    prevAIMessage, 
+  };
+
+  try {
+    const data = await axios.post(process.env.REACT_APP_BACKEND_URL + "/makeTriageRequest", postInput)
+    .then(res => res.data);
+    return data.triageResponse
+  } catch (error) {
+    console.error("Error making API call:", error);
+    return {"Error": error}
+  }
+
+}
+
 
 export async function getFlightResults(originCode, destinationCode, tripType) {
 

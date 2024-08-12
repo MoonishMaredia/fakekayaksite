@@ -46,3 +46,7 @@ p {
   color: black;
   margin-left: 10px;
 }
+
+.messages > p {
+  font-weight: 400;
+}

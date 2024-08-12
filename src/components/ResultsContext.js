@@ -8,8 +8,8 @@ export function useResults() {
 }
 
 export const ResultsProvider = ({ children }) => {
-  // const [results, setResults] = useState(flightDataObj);
-  const [results, setResults] = useState();
+  const [results, setResults] = useState(flightDataObj);
+  // const [results, setResults] = useState();
 
   return (
     <ResultsContext.Provider value={{ results , setResults }}>

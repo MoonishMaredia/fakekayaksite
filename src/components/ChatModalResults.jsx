@@ -9,16 +9,16 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { marked } from 'marked'; // Import marked for Markdown parsing
-import { makeGPTRequests} from '../utils/api';
-import { getLandingChatHTML, getLandingChatMessage } from '../utils/other';
+import { makeGPTRequests, makeTriageRequests} from '../utils/api';
+import { getLandingResultsChatHTML, getLandingResultsChatMessage } from '../utils/other';
 import {airportCodes} from '../busyairportcodes'
 import { useInput } from './InputContext'
 
 const ChatModal = ({open, onClose, handleSubmit, getCompletedObject, fieldErrors, setFieldErrors}) => {
 
   const {searchInputs, setSearchInputs} = useInput({});
-  const [aiMessages, setAIMessages] = useState([getLandingChatMessage()])
-  const [messages, setMessages] = useState([{sender: 'ai', text: getLandingChatHTML()}]);
+  const [aiMessages, setAIMessages] = useState([getLandingResultsChatMessage()])
+  const [messages, setMessages] = useState([{sender: 'ai', text: getLandingResultsChatHTML()}]);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const messagesEndRef = useRef(null);
@@ -91,6 +91,7 @@ const ChatModal = ({open, onClose, handleSubmit, getCompletedObject, fieldErrors
       }
     }
   }
+
 
   function runSetFunctions(setter, arg) {
     if(setter==="setTripType") {
@@ -183,13 +184,10 @@ const ChatModal = ({open, onClose, handleSubmit, getCompletedObject, fieldErrors
 
       const cleanedResponse = codeResponse.replace(/\[|\]/g, '');
       const array = cleanedResponse.split(',').map(str => str.trim());
-      // console.log(array);
-      // console.log(array.length);
       
       for (let i = 0; i < array.length; i += 2) {
         const setter = array[i];
         const arg = array[i + 1];
-        // console.log(setter, arg);
         runSetFunctions(setter, arg);
       }
     } catch (error) {
@@ -201,24 +199,25 @@ const ChatModal = ({open, onClose, handleSubmit, getCompletedObject, fieldErrors
     try {
       setMessages((prev) => [{ sender: 'user', text: userMessage }, ...prev]);
       const prevAIMessage = aiMessages ? aiMessages[aiMessages.length - 1] : ""
-      const inputObjString = getCompletedObject()
-      const [completeResponse, codeResponse, userResponse] = await makeGPTRequests(userMessage, prevAIMessage, inputObjString)
+      const triageResponse = await makeTriageRequests(userMessage, prevAIMessage)
 
-      if(completeResponse==="True") {
-        handleSubmit()
-      }
+      console.log(triageResponse)
 
-      const htmlContent = marked(userResponse); // Convert Markdown to HTML
-      setMessages((prev) => [{sender: 'ai', text: htmlContent }, ...prev]);
-      setAIMessages((prev) => [...prev, userResponse])
-      commandCenter(codeResponse)
+    //   if(completeResponse==="True") {
+    //     handleSubmit()
+    //   }
+
+    //   const htmlContent = marked(userResponse); // Convert Markdown to HTML
+    //   setMessages((prev) => [{sender: 'ai', text: htmlContent }, ...prev]);
+    //   setAIMessages((prev) => [...prev, userResponse])
+    //   commandCenter(codeResponse)
     } catch (error) {
       console.error("Error fetching response:", error);
     }
   };
 
   const drawerStyle = {
-    width: isMobile ? '100%' : '30%',
+    width: isMobile ? '100%' : '22%',
     height: '100vh',
     position: 'fixed',
     right: 0,
@@ -244,7 +243,9 @@ const ChatModal = ({open, onClose, handleSubmit, getCompletedObject, fieldErrors
       padding: '8px',
       borderRadius: '8px',
       margin: '4px 0',
-      maxWidth: '80%',
+      maxWidth: '90%',
+      fontSize:"14px",
+      fontWeight:"400"
     },
   };
 
@@ -266,11 +267,11 @@ const ChatModal = ({open, onClose, handleSubmit, getCompletedObject, fieldErrors
         <Box sx={{ flexGrow: 1, overflowY: 'auto', mb: 2, display: 'flex', flexDirection:'column-reverse'}}>
           {messages.map((msg, index) => (
             <Box
+              className="messages"
               key={index}
               sx={msg.sender === 'user' ? messageStyle.user : messageStyle.ai}
               dangerouslySetInnerHTML={{ __html: msg.text }} // Render HTML content
             >
-              {/* <Typography>{msg.text}</Typography> */}
             </Box>
           ))}
         </Box>

@@ -11,6 +11,7 @@ import { useInput } from '../components/InputContext.js';
 import { useResults } from '../components/ResultsContext';
 import { useBooking } from '../components/BookingContext'
 import { useNavigate } from 'react-router-dom';
+import ChatModal from '../components/ChatModalResults'
 
 
 const seatScalar = {
@@ -186,7 +187,7 @@ const FlightResultsPage = () => {
   }, [isReturnFlightPage])
 
   return (
-    <>
+    <Box sx={{display:'flex'}}>
     {displayedFlights &&
     <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
       <HeaderLayout onChatOpen={handleChatOpen} />
@@ -228,7 +229,16 @@ const FlightResultsPage = () => {
       </Box>
     </Box>
         }
-    </>
+      <ChatModal 
+      open={isChatOpen} 
+      onClose={handleChatClose} 
+      // setLoading={setLoading}
+      // handleSubmit={handleSubmit}
+      // getCompletedObject={getCompletedObject}
+      // fieldErrors={fieldErrors}
+      // setFieldErrors={setFieldErrors}
+      />
+    </Box>
   );
 };
 
