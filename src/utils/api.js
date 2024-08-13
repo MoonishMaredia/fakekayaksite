@@ -40,12 +40,14 @@ export async function makeTriageRequests(userMessage, prevAIMessage) {
 }
 
 
-export async function getFlightResults(originCode, destinationCode, tripType) {
+export async function getFlightResults(originCode, destinationCode, tripType, startDate, returnDate) {
 
   const postInput = { 
     'originCode':originCode, 
     'destinationCode':destinationCode, 
-    'tripType':tripType
+    'tripType':tripType,
+    'origDate':startDate,
+    'returnDate':returnDate
   };
 
   try {
@@ -57,4 +59,22 @@ export async function getFlightResults(originCode, destinationCode, tripType) {
     return {"Error": error}
   }
 
+}
+
+
+export async function getFlightScalars(dateStr, numFlights) {
+  
+  const postInput = { 
+    'date':dateStr, 
+    'numFlights':numFlights
+  };
+
+  try {
+    const data = await axios.post(process.env.REACT_APP_BACKEND_URL + "/getFlightScalars", postInput)
+    .then(res => res.data);
+    return data
+  } catch (error) {
+    console.error("Error making API call:", error);
+    return {"Error": error}
+  }
 }

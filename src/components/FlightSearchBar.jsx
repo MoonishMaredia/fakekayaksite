@@ -7,7 +7,7 @@ import { CalendarToday } from '@mui/icons-material';
 import { useInput } from './InputContext.js';
 import moment from 'moment';
 
-const FlightSearchBar = ({ isMobile }) => {
+const FlightSearchBar = ({ isMobile, handleStartDateChange, handleReturnDateChange, handleAirportChange }) => {
   const { searchInputs, setSearchInputs } = useInput({});
 
   // Get today's date
@@ -15,19 +15,6 @@ const FlightSearchBar = ({ isMobile }) => {
   // Calculate the date one year from today
   const oneYearFromToday = new Date();
   oneYearFromToday.setFullYear(today.getFullYear() + 1);
-
-  // Function to format date to YYYY-MM-DD using moment
-  const formatDate = (date) => {
-    return moment(date).format('YYYY-MM-DD');
-  };
-
-  const handleStartDateChange = (date) => {
-    setSearchInputs(prev => ({ ...prev, start_date: formatDate(date) }));
-  };
-
-  const handleReturnDateChange = (date) => {
-    setSearchInputs(prev => ({ ...prev, return_date: formatDate(date) }));
-  };
 
   return (
     <Paper 
@@ -43,12 +30,14 @@ const FlightSearchBar = ({ isMobile }) => {
         <AirportAutocomplete
           placeholderText={"Flying From..."}
           takeOff={true}
+          handleAirportChange={handleAirportChange}
         />
       </Box>
       <Box>
         <AirportAutocomplete
           placeholderText={'Flying To...'}
           takeOff={false}
+          handleAirportChange={handleAirportChange}
         />
       </Box>
       <Box sx={{ 

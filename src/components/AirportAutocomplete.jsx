@@ -5,7 +5,7 @@ import { airportCodes } from '../busyairportcodes.js';
 import { airportCodesArray } from '../busyairportcodes.js';
 import { useInput } from './InputContext.js'
 
-const AirportAutocomplete = ({ placeholderText, takeOff }) => {
+const AirportAutocomplete = ({ placeholderText, takeOff, handleAirportChange }) => {
   const { searchInputs, setSearchInputs } = useInput({})
   const [inputValue, setInputValue] = useState('')
   const [value, setValue] = useState(null)
@@ -22,9 +22,10 @@ const AirportAutocomplete = ({ placeholderText, takeOff }) => {
     setInputValue(newInputValue)
   }
 
-  const handleChange = (event, newValue) => {
+  async function handleChange(event, newValue) {
     setValue(newValue)
     if (newValue) {
+      await handleAirportChange(takeOff, newValue.key)
       setSearchInputs(prev => ({
         ...prev,
         [takeOff ? 'flying_from' : 'flying_to']: newValue.key

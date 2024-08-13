@@ -28,7 +28,7 @@ const ChatModal = ({open, onClose, handleSubmit, getCompletedObject, fieldErrors
     if (isNaN(parsed)) {
       setFieldErrors({...fieldErrors, [field]:"#ERROR: Provided value wasn't an integer"})
     } else if(field === "num_passengers" && (![1, 2, 3, 4, 5].includes(parsed))) {
-      setFieldErrors({ ...fieldErrors, [field]: "#ERROR: Provided value should be between 1 and 10"});
+      setFieldErrors({ ...fieldErrors, [field]: "#ERROR: Provided value should be between 1 and 5"});
       return {"msg":400}
     } else if(field === "num_carryOn" && (![0, 1].includes(parsed))) {
       setFieldErrors({...fieldErrors, [field]: "#ERROR: Provided value should be one of 0,1"});

@@ -11,6 +11,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import {useInput} from './InputContext.js'
 
+const options = { year: 'numeric', month: 'numeric', day: 'numeric', timeZone: 'UTC' };
+
 
 export default function FlightCardMobile({ 
   flightData, expanded, 
@@ -32,7 +34,7 @@ export default function FlightCardMobile({
             sx={{ display: "flex", justifyContent: "left" }}
             item xs={6} alignItems="center">
             <Typography sx={{fontSize:"13px"}} variant="subtitle2" fontWeight="medium">
-                Departure · {new Date(flightData['start_time']).toLocaleDateString()}
+                Departure · {isReturnFlightPage ? new Date(searchInputs.return_date).toLocaleDateString('en-US', options) : new Date(searchInputs.start_date).toLocaleDateString('en-US', options)}
             </Typography>
         </Grid>
       </>

@@ -11,12 +11,13 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import {useInput} from './InputContext.js'
 
+const options = { year: 'numeric', month: 'numeric', day: 'numeric', timeZone: 'UTC' };
 
 export default function FlightCardDesktop({ 
   flightData, expanded, 
   handleExpandClick, memoizedStartTime, 
   memoizedEndTime, memoizedDuration, 
-  stopsDetailText, isReturnFlightPage}) {
+  stopsDetailText, isReturnFlightPage, handleFlightSelection}) {
 
   const {searchInputs} = useInput({})
 
@@ -31,12 +32,12 @@ export default function FlightCardDesktop({
             sx={{ display: "flex", justifyContent: "left" }}
             item xs={4} alignItems="center">
             <Typography variant="subtitle1" fontWeight="medium">
-                Departure · {new Date(flightData['start_time']).toLocaleDateString()}
+                Departure · {isReturnFlightPage ? new Date(searchInputs.return_date).toLocaleDateString('en-US', options) : new Date(searchInputs.start_date).toLocaleDateString('en-US', options)}
             </Typography>
         </Grid>
         <Grid item xs={1}></Grid>
         <Grid item xs={2} sx={{display: 'flex', justifyContent:"flex-end"}}>
-          <Button sx={{fontSize:"12px", borderRadius: "10px"}} variant="outlined" color="primary">
+          <Button onClick={()=>handleFlightSelection(flightData['_id'], flightData['airline'], flightData['airline_logo'])} sx={{fontSize:"12px", borderRadius: "10px"}} variant="outlined" color="primary">
             Select flight
           </Button>
         </Grid>

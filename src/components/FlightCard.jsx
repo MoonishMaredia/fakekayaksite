@@ -59,7 +59,7 @@ const FlightCard = ({ isMobile, flightData, isReturnFlightPage, handleFlightSele
 const stopsDetailText = useMemo(()=>getStopsText(), [flightData ,getStopsText])
 
   return (
-    <Card onClick={()=>handleFlightSelection(flightData['_id'], flightData['airline'], flightData['airline_logo'])} sx={{ cursor: 'pointer', '&:hover': { backgroundColor: 'rgb(241 245 249)' } }}>
+    <Card sx={{ cursor: 'pointer', '&:hover': { backgroundColor: 'rgb(241 245 249)' } }}>
       <CardContent id="summary-card" sx={{ cursor:"pointer", p: 2, '&:last-child': { pb: 2 }}}>
         {isMobile ? (
           <FlightCardMobile
@@ -81,6 +81,7 @@ const stopsDetailText = useMemo(()=>getStopsText(), [flightData ,getStopsText])
             memoizedDuration={memoizedDuration}
             stopsDetailText={stopsDetailText}
             isReturnFlightPage={isReturnFlightPage}
+            handleFlightSelection={handleFlightSelection}
           />
         )}
       </CardContent>
@@ -89,7 +90,7 @@ const stopsDetailText = useMemo(()=>getStopsText(), [flightData ,getStopsText])
         <CardContent>
           {/* Detailed flight information (your previous implementation) */}
           {isMobile && <Box display="flex" justifyContent="space-between" alignItems="left" mb={2}>
-            <Button sx={{fontSize: "10px"}} variant="outlined" color="primary">
+            <Button onClick={()=>handleFlightSelection(flightData['_id'], flightData['airline'], flightData['airline_logo'])} sx={{fontSize: "10px"}} variant="outlined" color="primary">
               Select flight
             </Button>
           </Box>}

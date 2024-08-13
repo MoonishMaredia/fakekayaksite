@@ -11,7 +11,10 @@ import { useInput } from '../components/InputContext.js';
 import { useResults } from '../components/ResultsContext';
 import { useBooking } from '../components/BookingContext'
 import { useNavigate } from 'react-router-dom';
+import {getFlightScalars, getFlightResults} from '../utils/api.js'
 import ChatModal from '../components/ChatModalResults'
+import moment from 'moment';
+
 
 
 const seatScalar = {
@@ -45,7 +48,7 @@ const getCheckedFees = (airline, numBags) => {
 };
 
 const FlightResultsPage = () => {
-  const { searchInputs } = useInput({});
+  const { searchInputs, setSearchInputs } = useInput({});
   const { results, setResults } = useResults({});
   const { bookingDetails, setBookingDetails } = useBooking({});
 
@@ -61,12 +64,47 @@ const FlightResultsPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  
   function handleSort(value) {
     setSortMethod(value)
     setDisplayedFlights(sortFlights(displayedFlights, value))
   }
 
+  async function handleAirportChange(takeOff, newAirport) {
+    let resultsData = {}
+    if(takeOff) {
+      resultsData = await getFlightResults(newAirport, searchInputs.flying_to, 
+        searchInputs.trip_type, searchInputs.start_date, searchInputs.return_date)
+    } else {
+      resultsData = await getFlightResults(searchInputs.flying_from, newAirport, 
+        searchInputs.trip_type, searchInputs.start_date, searchInputs.return_date)
+    }
+    setResults(resultsData)
+    navigate('/results')
+  }
+
+    // Function to format date to YYYY-MM-DD using moment
+    const formatDate = (date) => {
+      return moment(date).format('YYYY-MM-DD');
+    };
+  
+    async function handleStartDateChange(date) {
+      const dateStr = formatDate(date)
+      const newScalars = await getFlightScalars(dateStr, results.flightsTo.length)
+      setResults(prev=>({...prev, "scalarsTo":newScalars}))
+      setSearchInputs(prev => ({ ...prev, start_date: dateStr }));
+      if(searchInputs.return_date) {
+        if(date > new Date(searchInputs.return_date)) {
+          handleReturnDateChange(date)
+        }
+      }
+    };
+  
+    async function handleReturnDateChange(date) {
+      const dateStr = formatDate(date)
+      const newScalars = await getFlightScalars(dateStr, results.flightsReturn.length)
+      setResults(prev=>({...prev, "scalarsReturn":newScalars}))
+      setSearchInputs(prev => ({ ...prev, return_date: dateStr }));
+    };
 
   function handleFlightSelection(flightId, airline, airlineLogoUrl) {
     if(searchInputs.trip_type==="Round-trip" && !isReturnFlightPage) {
@@ -100,8 +138,8 @@ const FlightResultsPage = () => {
 
     if(!isReturnFlightPage)  {
 
-        const flightArray = results.flightsTo.map(flight => {
-        const adjTripCost = flight.trip_cost * searchInputs.num_passengers * seatScalar[searchInputs.seat_type];
+        const flightArray = results.flightsTo.map((flight,index) => {
+        const adjTripCost = Math.ceil(flight.trip_cost * searchInputs.num_passengers * seatScalar[searchInputs.seat_type] * results.scalarsTo[index]);
         const bagFees = getCarryFees(flight.airline, flight.num_carryOn) * searchInputs.num_passengers;
         const checkedFees = getCheckedFees(flight.airline, searchInputs.num_checked) * searchInputs.num_passengers;
           
@@ -116,11 +154,12 @@ const FlightResultsPage = () => {
     
         setResults(prev=>({...prev, 'flightsTo':flightArray}))
         setDisplayedFlights(flightArray)
+        
     }}, []);
 
     useEffect(() => {
-      const flightArray = results.flightsReturn.map(flight => {
-      const adjTripCost = flight.trip_cost * searchInputs.num_passengers * seatScalar[searchInputs.seat_type];
+      const flightArray = results.flightsReturn.map((flight,index) => {
+      const adjTripCost = Math.ceil(flight.trip_cost * searchInputs.num_passengers * seatScalar[searchInputs.seat_type] * results.scalarsReturn[index]);
       const bagFees = getCarryFees(flight.airline, flight.num_carryOn) * searchInputs.num_passengers;
       const checkedFees = getCheckedFees(flight.airline, searchInputs.num_checked) * searchInputs.num_passengers;
         
@@ -139,9 +178,8 @@ const FlightResultsPage = () => {
 
   useEffect(() => {
 
-    if(!isReturnFlightPage) {
-        const flightArray = results.flightsTo.map(flight => {
-        const adjTripCost = flight.trip_cost * searchInputs.num_passengers * seatScalar[searchInputs.seat_type];
+        const flightArray = results.flightsTo.map((flight,index) => {
+        const adjTripCost = Math.ceil(flight.trip_cost * searchInputs.num_passengers * seatScalar[searchInputs.seat_type] * results.scalarsTo[index]);
         const bagFees = getCarryFees(flight.airline, flight.num_carryOn) * searchInputs.num_passengers;
         const checkedFees = getCheckedFees(flight.airline, searchInputs.num_checked) * searchInputs.num_passengers;
           
@@ -155,11 +193,18 @@ const FlightResultsPage = () => {
         });
         
         setResults(prev=>({...prev, 'flightsTo':flightArray}))
-        setDisplayedFlights(sortFlights(flightArray, sortMethod))
 
-    } else {
-        const flightArray = results.flightsReturn.map(flight => {
-        const adjTripCost = flight.trip_cost * searchInputs.num_passengers * seatScalar[searchInputs.seat_type];
+        if(!isReturnFlightPage) {
+          setDisplayedFlights(sortFlights(flightArray, sortMethod))
+        }
+
+  }, [searchInputs.num_passengers, searchInputs.seat_type, searchInputs.num_checked, searchInputs.num_carryOn, 
+    searchInputs.start_date, searchInputs.flying_from]);
+
+  useEffect(() => {
+
+        const flightArray = results.flightsTo.map((flight,index) => {
+        const adjTripCost = Math.ceil(flight.trip_cost * searchInputs.num_passengers * seatScalar[searchInputs.seat_type] * results.scalarsTo[index]);
         const bagFees = getCarryFees(flight.airline, flight.num_carryOn) * searchInputs.num_passengers;
         const checkedFees = getCheckedFees(flight.airline, searchInputs.num_checked) * searchInputs.num_passengers;
           
@@ -172,11 +217,15 @@ const FlightResultsPage = () => {
           };
         });
         
-        setResults(prev=>({...prev, 'flightsReturn':flightArray}))
-        setDisplayedFlights(sortFlights(flightArray, sortMethod))
-    }
+        setResults(prev=>({...prev, 'flightsTo':flightArray}))
 
-  }, [searchInputs.num_passengers, searchInputs.seat_type, searchInputs.num_checked, searchInputs.num_carryOn]);
+        if(isReturnFlightPage) {
+          setDisplayedFlights(sortFlights(flightArray, sortMethod))
+        }
+
+  }, [searchInputs.num_passengers, searchInputs.seat_type, searchInputs.num_checked, searchInputs.num_carryOn, 
+    searchInputs.return_date, searchInputs.flying_to]);
+
 
   useEffect(()=> {
     if(isReturnFlightPage) {
@@ -204,7 +253,12 @@ const FlightResultsPage = () => {
       >
         {/* <button onClick={()=>setIsReturnFlightPage(prev=>!prev)}>Click ME</button> */}
         <TripOptionsBar isMobile={isMobile} />
-        <FlightSearchBar isMobile={isMobile} />
+        <FlightSearchBar 
+          isMobile={isMobile} 
+          handleStartDateChange={handleStartDateChange}
+          handleReturnDateChange={handleReturnDateChange}
+          handleAirportChange={handleAirportChange}
+        />
         <FilterComponent displayedFlights={displayedFlights} setDisplayedFlights={setDisplayedFlights} />
         <Box sx={{ display: 'flex', flexDirection: 'column', maxWidth: isMobile ? '100%' : '82%', gap: 2 }}>
         {isReturnFlightPage &&

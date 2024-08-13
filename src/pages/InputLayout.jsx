@@ -9,7 +9,6 @@ import { getFlightResults } from '../utils/api';
 import {useInput} from '../components/InputContext.js'
 import {useResults} from '../components/ResultsContext.js'
 
-
 const InputLayout = () => {
 
   const navigate = useNavigate();
@@ -52,9 +51,10 @@ const InputLayout = () => {
     handleChatClose()
     setSearchInputs(getCompletedObject())
     setLoading(true)
-    const resultsData = await getFlightResults(searchInputs.flying_from, searchInputs.flying_to, searchInputs.trip_type)
+    const resultsData = await getFlightResults(searchInputs.flying_from, searchInputs.flying_to, 
+        searchInputs.trip_type, searchInputs.start_date, searchInputs.return_date)
     setResults(resultsData)
-    await sleep(1000)
+    await sleep(2000)
     navigate('/results')
   }
 

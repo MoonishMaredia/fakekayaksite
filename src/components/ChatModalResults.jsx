@@ -9,61 +9,67 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { marked } from 'marked'; // Import marked for Markdown parsing
-import { makeGPTRequests, makeTriageRequests} from '../utils/api';
+import { makeGPTRequests, makeTriageRequests, getFlightResults} from '../utils/api';
 import { getLandingResultsChatHTML, getLandingResultsChatMessage } from '../utils/other';
 import {airportCodes} from '../busyairportcodes'
 import { useInput } from './InputContext'
+import { useResults } from './ResultsContext'
+
 
 const ChatModal = ({open, onClose, handleSubmit, getCompletedObject, fieldErrors, setFieldErrors}) => {
 
   const {searchInputs, setSearchInputs} = useInput({});
+  const {results, setResults} = useResults({})
   const [aiMessages, setAIMessages] = useState([getLandingResultsChatMessage()])
   const [messages, setMessages] = useState([{sender: 'ai', text: getLandingResultsChatHTML()}]);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const messagesEndRef = useRef(null);
+  const [isDisabled, setIsDisabled]= useState(false)
+  
+  
 
   function verifyMinMaxType(field, arg) {
     const parsed = parseInt(arg);
     if (isNaN(parsed)) {
-      setFieldErrors({...fieldErrors, [field]:"#ERROR: Provided value wasn't an integer"})
+      return {"msg":400, "error":"there was an error processing your request"}
     } else if(field === "num_passengers" && (![1, 2, 3, 4, 5].includes(parsed))) {
-      setFieldErrors({ ...fieldErrors, [field]: "#ERROR: Provided value should be between 1 and 10"});
-      return {"msg":400}
+      setFieldErrors({ ...fieldErrors, [field]: "#ERROR: Provided value should be between 1 and 5"});
+      return {"msg":400, "error": "Number of passengers should be between 1 and 5"}
     } else if(field === "num_carryOn" && (![0, 1].includes(parsed))) {
-      setFieldErrors({...fieldErrors, [field]: "#ERROR: Provided value should be one of 0,1"});
-      return {"msg":400}
+      return {"msg":400, "error": "Number of carry on bags should be 0 or 1"}
     } else if(field === "num_checked" && (![0, 1, 2, 3].includes(parsed))) {
-      setFieldErrors({ ...fieldErrors, [field]: "#ERROR: Provided value should be one of 0,1,2,3"});
-      return {"msg":400}
+      return {"msg":400, "error": "Number of carry on bags should be between 1 and 3"}
     } else {
       setFieldErrors({...fieldErrors, [field]: ""})
       return {"msg":200, "arg":arg}
     }
   }
 
-  function verifyAirportCode(airportSource, arg) {
-    if(airportSource==="from") {
-      if(arg===searchInputs.flying_to) {
-        setFieldErrors({...fieldErrors, "flying_from":"#ERROR: flying_from airport is the same as flying_to airport"})
-        return {"msg":400}
-      } else if(!airportCodes.hasOwnProperty(arg)) {
-        setFieldErrors({...fieldErrors, "flying_from":"#ERROR: flying_from airport code is not valid. Verify with user"})
-        return {"msg":400}
+  function verifyAirportCode(airportSource1, arg1, airportSource2=null, arg2=null, multipleArgs=false) {
+    if(multipleArgs) {
+      if(arg1===arg2) {
+        return {"msg":400, "error":"origin and destination airport cannot be the same"}
+      } else if(!airportCodes.hasOwnProperty(arg1) || !airportCodes.hasOwnProperty(arg2)) {
+        return {"msg":400, "error":"provided airport(s) are not valid. Identify valid airports using input fields"}
       } else {
-        setFieldErrors({...fieldErrors, "flying_from":""})
-        return {"msg":200, "arg":arg}
+        return {"msg":200}
+      } 
+    } else if(airportSource1==="setFlyingFrom") {
+      if(arg1===searchInputs.flying_to) {
+        return {"msg":400, "error":"origin and destination airport cannot be the same"}
+      } else if(!airportCodes.hasOwnProperty(arg1)) {
+        return {"msg":400, "error":"provided airport is not valid. Identify valid airports using input fields"}
+      } else {
+        return {"msg":200, "arg":arg1}
       }
-    } else if(airportSource==="to") {
-      if(searchInputs.flying_from===arg) {
-        setFieldErrors({...fieldErrors, "flying_to":"#ERROR: flying_to airport is the same as flying_from airport"})
-        return {"msg":400}
-      } else if(!airportCodes.hasOwnProperty(arg)) {
-        setFieldErrors({...fieldErrors, "flying_to":"#ERROR: flying_to airport is not valid. Verify with user"})
-        return {"msg":400}
+    } else if(airportSource1==="setFlyingTo") {
+      if(arg1===searchInputs.flying_from) {
+        return {"msg":400, "error":"origin and destination airport cannot be the same"}
+      } else if(!airportCodes.hasOwnProperty(arg1)) {
+        return {"msg":400, "error":"provided airport is not valid. Identify valid airports using input fields"}
       } else {
-        setFieldErrors({...fieldErrors, "flying_to":""})
-        return {"msg":200, "arg":arg}
+        return {"msg":200, "arg":arg1}
       }
     }
   }
@@ -75,18 +81,14 @@ const ChatModal = ({open, onClose, handleSubmit, getCompletedObject, fieldErrors
     const todayDate = new Date()
     if(dateType==='start_date') {
       if(utcDate < todayDate) {
-        setFieldErrors({...fieldErrors, "start_date":"#ERROR: Start date is earlier than current date"})
-        return {"msg":400}
+        return {"msg":400, "error":"Invalid date. Start date is earlier than current date"}
       } else {
-        setFieldErrors({"start_date":"", ...fieldErrors})
         return {"msg":200, "arg":utcDate.toISOString()}
       }
     } else if(dateType==="return_date") {
         if(searchInputs.start_date & new Date(utcDate.toISOString()) < searchInputs.start_date)  {
-          setFieldErrors({...fieldErrors, "start_date":"#ERROR: Start date is earlier than current date"})
-          return {"msg":400}
+          return {"msg":400, "error":"Invalid date. Start date is earlier than current date"}
       } else {
-        setFieldErrors({"return_date":"", ...fieldErrors})
         return {"msg":200, "arg":utcDate.toISOString()}
       }
     }
@@ -94,37 +96,21 @@ const ChatModal = ({open, onClose, handleSubmit, getCompletedObject, fieldErrors
 
 
   function runSetFunctions(setter, arg) {
+
     if(setter==="setTripType") {
       if(!['Round-trip','One-way'].includes(arg)) {
-        setFieldErrors({...fieldErrors, "trip_type":"#ERROR: Invalid value. It should be either Round-trip or One-way"})
-        setSearchInputs(prev=>({...prev, 'trip_type': ""}))
+        return {"msg":400, "error":"invalid specification for trip type, should be round trip or one way"}
       } else {
         setSearchInputs(prev=>({...prev, 'trip_type': arg}))
+        return {"msg":200}
       }
-
-    } else if (setter==="setFlyingFrom") {
-      const res = verifyAirportCode("from", arg)
-      if(res.msg===200) {
-        setSearchInputs(prev=>({...prev, 'flying_from': arg}))
-      } else {
-        setSearchInputs(prev=>({...prev, 'flying_from': ""}))
-      }
-
-    } else if(setter==="setFlyingTo") {
-      const res = verifyAirportCode("to", arg)
-      if(res.msg===200) {
-        setSearchInputs(prev=>({...prev, 'flying_to': arg}))
-      } else {
-        setSearchInputs(prev=>({...prev, 'flying_to': ""}))
-      }
-
 
     } else if(setter==="setStartDate") {
       const res = verifyDate("start_date", arg)
       if(res.msg===200) {
         setSearchInputs(prev=>({...prev, 'start_date': res.arg}))
       } else {
-        setSearchInputs(prev=>({...prev, 'start_date': null}))
+        return {"msg":400, "error":res.error}
       }
 
     } else if(setter==="setReturnDate") {
@@ -132,7 +118,7 @@ const ChatModal = ({open, onClose, handleSubmit, getCompletedObject, fieldErrors
       if(res.msg===200) {
         setSearchInputs(prev=>({...prev, 'return_date': res.arg}))
       } else {
-        setSearchInputs(prev=>({...prev, 'return_date': null}))
+        return {"msg":400, "error":res.error}
       }
 
     } else if(setter==="setPassengers") {
@@ -140,13 +126,12 @@ const ChatModal = ({open, onClose, handleSubmit, getCompletedObject, fieldErrors
       if(res.msg===200) {
         setSearchInputs(prev=>({...prev, 'num_passengers': parseInt(res.arg)}))
       } else {
-        setSearchInputs(prev=>({...prev, 'num_passengers': null}))
+        return {"msg":400, "error":res.error}
       }
     
     } else if(setter==="setSeatType") {
      if(!['Economy','Business'].includes(arg)) {
-      setFieldErrors({...fieldErrors, "seat_type":"#ERROR: Invalid value. It should be either Economy or Business"})
-      setSearchInputs(prev=>({...prev, 'seat_type': ""}))
+      return {"msg":400, "error":"Invalid ticket type. It should be either Economy or Business"}
     } else {
       setSearchInputs(prev=>({...prev, 'seat_type': arg}))
     }
@@ -157,7 +142,7 @@ const ChatModal = ({open, onClose, handleSubmit, getCompletedObject, fieldErrors
         setSearchInputs(prev=>({...prev, 'num_carryOn': parseInt(res.arg)}))
 
       } else {
-        setSearchInputs(prev=>({...prev, 'num_carryOn': null}))
+        return {"msg":400, "error":res.msg}
       }
 
     } else if(setter==="setCheckedBags") {
@@ -165,7 +150,7 @@ const ChatModal = ({open, onClose, handleSubmit, getCompletedObject, fieldErrors
       if(res.msg===200) {
         setSearchInputs(prev=>({...prev, 'num_checked': parseInt(res.arg)}))
       } else {
-        setSearchInputs(prev=>({...prev, 'num_checked': null}))
+        return {"msg":400, "error":res.msg}
       }
       
     } else {
@@ -173,22 +158,95 @@ const ChatModal = ({open, onClose, handleSubmit, getCompletedObject, fieldErrors
     }
   }
 
-  function commandCenter(codeResponse) {
+  async function runUpdateFunction(userMessage, prevAIMessage) {
+
+    // const updateResponse = await makeUpdateRequest(userMessage, prevAIMessage)
+    const updateResponse = ['setFlyingFrom','IAH','setFlyingTo','DFW']
+    const cleanedResponse = updateResponse.replace(/\[|\]/g, '');
+    const array = cleanedResponse.split(',').map(str => str.trim());
+
+    try {
+      for (let i = 0; i < array.length; i += 2) {
+        const setter1 = array[i];
+        const arg1 = array[i + 1];
+        if(i+3 < array.length) {
+          const setter2 = array[i+2]
+          const arg2 = array[i+3]
+          if(['setFlyingFrom','setFlyingTo'].includes(setter1) && ['setFlyingFrom','setFlyingTo'].includes(setter2)) {
+            await runUpdateSubFunctions(setter1, arg1, setter2, arg2, true);
+        }
+        } else {
+          await runUpdateSubFunctions(setter1, arg1)
+        }
+    }
+  } catch (error) {
+    console.error("Error parsing or processing response:", error);
+  }
+  }
+
+  async function runUpdateSubFunctions(setter1, arg1, setter2=null, arg2=null, multipleArgs=false) {
+
+    if(multipleArgs) {
+      const message = verifyAirportCode(setter1, arg1, setter2, arg2, multipleArgs=true)
+      if(message.msg === 400) {
+        return {"msg":400, "error":message.error}
+      } else {
+        setSearchInputs(prev=>({...prev, 'flying_from':arg1, 'flying_to':arg2}))
+        const resultsData = await getFlightResults(arg1, arg2, searchInputs.trip_type, 
+          searchInputs.start_date, searchInputs.return_date)
+        setResults(resultsData)
+      }
+      return {"msg":200}
+    }
+
+    if(['setFlyingFrom','setFlyingTo'].includes(setter1)) {
+      const message = verifyAirportCode(setter1, arg1)
+      if(message.msg===400) {
+        return {"msg":400, "error":message.error}
+      } else {
+        setSearchInputs(prev=>({...prev, setter1:arg1}))
+        if(setter1==="setFlyingFrom") {
+          const resultsData = await getFlightResults(arg1, searchInputs.flying_to, searchInputs.trip_type,
+            searchInputs.start_date, searchInputs.return_date
+          )
+          setResults(resultsData)
+        } else if(setter1==="setFlyingTo") {
+          const resultsData = await getFlightResults(searchInputs.flying_from, arg1, searchInputs.trip_type,
+            searchInputs.start_date, searchInputs.return_date
+          )
+          setResults(resultsData)
+        }
+      }
+      return {"msg":200}
+    } else {
+      const result = runSetFunctions(setter1, arg1)
+      return result
+    }
+
+
+
+  }
+
+  function commandCenter(triageResponse, userMessage, prevAIMessage) {
 
     try {
 
-      if (codeResponse === "[]") {
+      if (triageResponse === "[]") {
         // console.log("Nothing to run");
+        setMessages((prev) => [{sender: 'ai', text: "I'm sorry I didn't understand your last message. Can you be more specific and try again?" }, ...prev]);
         return;
       }
 
-      const cleanedResponse = codeResponse.replace(/\[|\]/g, '');
+      const cleanedResponse = triageResponse.replace(/\[|\]/g, '');
       const array = cleanedResponse.split(',').map(str => str.trim());
       
-      for (let i = 0; i < array.length; i += 2) {
-        const setter = array[i];
-        const arg = array[i + 1];
-        runSetFunctions(setter, arg);
+      for (let i = 0; i < array.length; i++) {
+        const action = array[i];
+        if(action==="update") {
+          runUpdateFunction(userMessage, prevAIMessage)
+        } 
+        // runActionFunction(action);
+        console.log("Run action function later!")
       }
     } catch (error) {
       console.error("Error parsing or processing response:", error);
@@ -197,11 +255,13 @@ const ChatModal = ({open, onClose, handleSubmit, getCompletedObject, fieldErrors
 
   const sendMessage = async (userMessage) => {
     try {
+      setIsDisabled(true)
       setMessages((prev) => [{ sender: 'user', text: userMessage }, ...prev]);
       const prevAIMessage = aiMessages ? aiMessages[aiMessages.length - 1] : ""
       const triageResponse = await makeTriageRequests(userMessage, prevAIMessage)
+      commandCenter(triageResponse, userMessage, prevAIMessage)
 
-      console.log(triageResponse)
+      setIsDisabled(false)
 
     //   if(completeResponse==="True") {
     //     handleSubmit()
@@ -279,6 +339,7 @@ const ChatModal = ({open, onClose, handleSubmit, getCompletedObject, fieldErrors
           <TextField
             fullWidth
             variant="outlined"
+            disabled={isDisabled}
             placeholder="Message GPT"
             onKeyPress={(e) => {
               if (e.key === 'Enter') {
