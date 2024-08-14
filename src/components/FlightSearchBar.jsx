@@ -48,7 +48,7 @@ const FlightSearchBar = ({ isMobile, handleStartDateChange, handleReturnDateChan
       }}>
         <DatePicker
           selected={searchInputs.start_date ? moment(searchInputs.start_date).toDate() : null}
-          onChange={handleStartDateChange}
+          onChange={(date) => handleStartDateChange(date)}
           selectsStart
           startDate={searchInputs.start_date ? moment(searchInputs.start_date).toDate() : null}
           minDate={today} // Disable dates before today
@@ -66,7 +66,7 @@ const FlightSearchBar = ({ isMobile, handleStartDateChange, handleReturnDateChan
         {searchInputs.trip_type === 'Round-trip' && (
           <DatePicker
             selected={searchInputs.return_date ? moment(searchInputs.return_date).toDate() : null}
-            onChange={handleReturnDateChange}
+            onChange={(date) => handleReturnDateChange(date)}
             selectsEnd
             startDate={searchInputs.start_date ? moment(searchInputs.start_date).toDate() : null}
             endDate={searchInputs.return_date ? moment(searchInputs.return_date).toDate() : null}

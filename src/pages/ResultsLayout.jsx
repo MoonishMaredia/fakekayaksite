@@ -44,7 +44,7 @@ const getCarryFees = (airline, numBags) => {
 };
 
 const getCheckedFees = (airline, numBags) => {
-  return checkedFees[airline]?.slice(0, numBags).reduce((a, b) => a + b, 0) || 0;
+  return checkedFees[airline]?.slice(0, numBags).reduce((a, b) => a + b, 0) || 50 * numBags;
 };
 
 const FlightResultsPage = () => {
@@ -69,7 +69,7 @@ const FlightResultsPage = () => {
     setDisplayedFlights(sortFlights(displayedFlights, value))
   }
 
-  async function handleAirportChange(takeOff, newAirport) {
+  async function handleSingleAirportChange(takeOff, newAirport) {
     let resultsData = {}
     if(takeOff) {
       resultsData = await getFlightResults(newAirport, searchInputs.flying_to, 
@@ -79,28 +79,55 @@ const FlightResultsPage = () => {
         searchInputs.trip_type, searchInputs.start_date, searchInputs.return_date)
     }
     setResults(resultsData)
-    navigate('/results')
+    setSearchInputs(prev => ({...prev, [takeOff ? 'flying_from' : 'flying_to']: newAirport}))
+  }
+
+  async function handleMultipleAirportChange(newOrigAirport, newDestAirport) {
+    let resultsData = {}
+      resultsData = await getFlightResults(newOrigAirport, newDestAirport, 
+        searchInputs.trip_type, searchInputs.start_date, searchInputs.return_date)
+    setResults(resultsData)
+    setSearchInputs(prev=>({...prev, "flying_from":newOrigAirport, "flying_to":newDestAirport}))
   }
 
     // Function to format date to YYYY-MM-DD using moment
     const formatDate = (date) => {
       return moment(date).format('YYYY-MM-DD');
     };
+
+    function addDays(date, days) {
+      let result = new Date(date);
+      result.setDate(result.getDate() + days);
+      return result;
+    }
   
-    async function handleStartDateChange(date) {
-      const dateStr = formatDate(date)
+    async function handleStartDateChange(date, isString=false) {
+      let dateStr = ""
+      let newDate = null
+      if(isString) {
+        dateStr = date
+        newDate = new Date(dateStr)
+      } else {
+        dateStr = formatDate(date)
+        newDate = date
+      }
       const newScalars = await getFlightScalars(dateStr, results.flightsTo.length)
       setResults(prev=>({...prev, "scalarsTo":newScalars}))
       setSearchInputs(prev => ({ ...prev, start_date: dateStr }));
       if(searchInputs.return_date) {
-        if(date > new Date(searchInputs.return_date)) {
-          handleReturnDateChange(date)
+        if(newDate > new Date(searchInputs.return_date)) {
+          handleReturnDateChange(addDays(date, 2))
         }
       }
     };
   
-    async function handleReturnDateChange(date) {
-      const dateStr = formatDate(date)
+    async function handleReturnDateChange(date, isString=false) {
+      let dateStr = ""
+      if(isString) {
+        dateStr = date
+      } else {
+        dateStr = formatDate(date)
+      }
       const newScalars = await getFlightScalars(dateStr, results.flightsReturn.length)
       setResults(prev=>({...prev, "scalarsReturn":newScalars}))
       setSearchInputs(prev => ({ ...prev, return_date: dateStr }));
@@ -203,8 +230,8 @@ const FlightResultsPage = () => {
 
   useEffect(() => {
 
-        const flightArray = results.flightsTo.map((flight,index) => {
-        const adjTripCost = Math.ceil(flight.trip_cost * searchInputs.num_passengers * seatScalar[searchInputs.seat_type] * results.scalarsTo[index]);
+        const flightArray = results.flightsReturn.map((flight,index) => {
+        const adjTripCost = Math.ceil(flight.trip_cost * searchInputs.num_passengers * seatScalar[searchInputs.seat_type] * results.scalarsReturn[index]);
         const bagFees = getCarryFees(flight.airline, flight.num_carryOn) * searchInputs.num_passengers;
         const checkedFees = getCheckedFees(flight.airline, searchInputs.num_checked) * searchInputs.num_passengers;
           
@@ -217,7 +244,7 @@ const FlightResultsPage = () => {
           };
         });
         
-        setResults(prev=>({...prev, 'flightsTo':flightArray}))
+        setResults(prev=>({...prev, 'flightsReturn':flightArray}))
 
         if(isReturnFlightPage) {
           setDisplayedFlights(sortFlights(flightArray, sortMethod))
@@ -257,7 +284,7 @@ const FlightResultsPage = () => {
           isMobile={isMobile} 
           handleStartDateChange={handleStartDateChange}
           handleReturnDateChange={handleReturnDateChange}
-          handleAirportChange={handleAirportChange}
+          handleAirportChange={handleSingleAirportChange}
         />
         <FilterComponent displayedFlights={displayedFlights} setDisplayedFlights={setDisplayedFlights} />
         <Box sx={{ display: 'flex', flexDirection: 'column', maxWidth: isMobile ? '100%' : '82%', gap: 2 }}>
@@ -285,7 +312,11 @@ const FlightResultsPage = () => {
         }
       <ChatModal 
       open={isChatOpen} 
-      onClose={handleChatClose} 
+      onClose={handleChatClose}
+      handleMultipleAirportChange={handleMultipleAirportChange} 
+      handleSingleAirportChange={handleSingleAirportChange}
+      handleStartDateChange={handleStartDateChange}
+      handleReturnDateChange={handleReturnDateChange}
       // setLoading={setLoading}
       // handleSubmit={handleSubmit}
       // getCompletedObject={getCompletedObject}

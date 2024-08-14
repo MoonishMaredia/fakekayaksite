@@ -26,10 +26,6 @@ const AirportAutocomplete = ({ placeholderText, takeOff, handleAirportChange }) 
     setValue(newValue)
     if (newValue) {
       await handleAirportChange(takeOff, newValue.key)
-      setSearchInputs(prev => ({
-        ...prev,
-        [takeOff ? 'flying_from' : 'flying_to']: newValue.key
-      }))
     }
   }
 
