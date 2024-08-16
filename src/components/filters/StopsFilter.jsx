@@ -1,6 +1,7 @@
 import React from 'react';
 
 const StopsFilter = ({ stops, setStops }) => {
+  
   return (
     <div className="stops-filter">
       {[100, 0, 1, 2].map((option) => (

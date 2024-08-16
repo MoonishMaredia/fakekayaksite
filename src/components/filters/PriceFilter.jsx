@@ -9,7 +9,7 @@ const PriceFilter = ({ price, setPrice, maxPrice }) => {
         min="0"
         max={maxPrice}
         value={price}
-        step={10}
+        step={1}
         onChange={(e) => setPrice(Number(e.target.value))}
       />
     </div>

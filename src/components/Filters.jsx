@@ -12,12 +12,33 @@ import LayoverDurationFilter from './filters/LayoverDurationFilter';
 import TotalDurationFilter from './filters/TotalDurationFilter';
 import initializeFilters from './initializeFilters';
 
-const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
+const FilterComponent = ({
+    displayedFlights, 
+    setDisplayedFlights,
+    isReturnFlightPage,
+    airlinesFilter,
+    setAirlinesFilter,
+    connectingAirports,
+    setConnectingAirports,
+    priceFilter,
+    setPriceFilter,
+    stopsFilter,
+    setStopsFilter,
+    timeFilter,
+    setTimeFilter,
+    layoverDuration,
+    setLayoverDuration,
+    totalDuration,
+    setTotalDuration}) => {
 
   const {results, setResults} = useResults({});
   const {searchInputs, setSearchInputs} = useInput({});
-
-  // const [filterOptions, setFilterOptions] = useState(null);
+  const [isStopsFilter, setIsStopsFilter] = useState(false)
+  const [isAirlinesFilter, setIsAirlinesFilter] = useState(false)
+  const [isPriceFilter, setIsPriceFilter] = useState(false)
+  const [isTimeFilter, setIsTimeFilter] = useState(false)
+  const [isConnectingAirportsFilter, setIsConnectingAirportsFilter] = useState(false)
+  const [isDurationFilter, setIsDurationFilter] = useState(false)
 
   const filterOptions = useMemo(() => {
     if (results.flightsTo) {
@@ -25,6 +46,25 @@ const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
     }
     return null;
   }, [results.flightsTo, searchInputs]);
+
+  function getFilterName(filterName) {
+    switch(filterName) {
+      case "Stops":
+        return isStopsFilter ? 'filter-chip filter-active' : 'filter-chip'
+      case "Airlines":
+        return isAirlinesFilter ? 'filter-chip filter-active' : 'filter-chip'
+      case "Price":
+        return isPriceFilter ? 'filter-chip filter-active' : 'filter-chip'
+      case "Times":
+        return isTimeFilter ? 'filter-chip filter-active' : 'filter-chip'
+      case "Connecting airports":
+        return isConnectingAirportsFilter ? 'filter-chip filter-active' : 'filter-chip'
+      case "Duration":
+        return isDurationFilter ? 'filter-chip filter-active' : 'filter-chip'
+      default:
+        return 'filter-chip'
+    }
+  }
 
 
   useEffect(() => {
@@ -47,14 +87,6 @@ const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
       })
     });
   };
-
-  const [airlinesFilter, setAirlinesFilter] = useState({});
-  const [connectingAirports, setConnectingAirports] = useState([]);
-  const [priceFilter, setPriceFilter] = useState(0);
-  const [stopsFilter, setStopsFilter] = useState(100);
-  const [timeFilter, setTimeFilter] = useState({ departure: [0, 24], arrival: [0, 24] });
-  const [layoverDuration, setLayoverDuration] = useState([0, 0]);
-  const [totalDuration, setTotalDuration] = useState([0, 0]);
 
   const [openFilter, setOpenFilter] = useState(null);
 
@@ -136,33 +168,56 @@ const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
 
   useEffect(()=> {
 
-    if (!results.flightsTo) return;
+    // if (!results.flightsTo) return;
 
-    let newFlights = results['flightsTo']
+    let newFlights = null
+
+    if(isReturnFlightPage) {
+      newFlights = results['flightsReturn']
+    } else {
+      newFlights = results['flightsTo']
+    }
 
     const areAllAirlinesSelected = Object.values(airlinesFilter).every(selected => selected);
     if (!areAllAirlinesSelected) {
       const selectedAirlines = Object.keys(airlinesFilter).filter(airline => airlinesFilter[airline]);
       newFlights = newFlights.filter(flight => selectedAirlines.includes(flight.airline));
+      setIsAirlinesFilter(true)
+    } else {
+      setIsAirlinesFilter(false)
     }
 
     if (stopsFilter !== 100) {
       newFlights = newFlights.filter(flight => flight.num_stops <= stopsFilter);
+      setIsStopsFilter(true)
+    } else {
+      setIsStopsFilter(false)
     }
 
     if (priceFilter !== filterOptions.maxPrice) {
       newFlights = newFlights.filter(flight => flight.trip_cost <= priceFilter);
+      setIsPriceFilter(true)
+    } else {
+      setIsPriceFilter(false)
     }
 
+    let isTimeDepartureFilter = false
     if (timeFilter['departure'][0] !== 0 || timeFilter['departure'][1] !== 24) {
+      console.log(timeFilter)
       const [lowerBound, upperBound] = timeFilter['departure'];
       newFlights = newFlights.filter(flight => flight.start_time_hours >= lowerBound && flight.start_time_hours <= upperBound);
-    }
-
+      isTimeDepartureFilter = true
+    } 
+    
+    let isTimeArrivalFilter = false
     if (timeFilter['arrival'][0] !== 0 || timeFilter['arrival'][1] !== 24) {
       const [lowerBound, upperBound] = timeFilter['arrival'];
       newFlights = newFlights.filter(flight => flight.end_time_hours >= lowerBound && flight.end_time_hours <= upperBound);
+      isTimeArrivalFilter = true
     }
+
+    setIsTimeFilter(isTimeDepartureFilter || isTimeArrivalFilter)
+
 
     if (totalDuration[0] !== 0 || totalDuration[1] !== filterOptions.maxDuration) {
       const [lowerBound, upperBound] = totalDuration;
@@ -170,8 +225,12 @@ const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
         const durationInHours = flight.total_duration / 60;
         return durationInHours >= lowerBound && durationInHours <= upperBound;
       });
+      setIsDurationFilter(true)
+    } else {
+      setIsDurationFilter(false)
     }
     
+    let isLayoverDurationFilter = false
     if (layoverDuration[0] !== 0 || layoverDuration[1] !== filterOptions.maxLayoverDuration) {
       const [lowerBound, upperBound] = layoverDuration;
       newFlights = newFlights.filter(flight => 
@@ -180,8 +239,10 @@ const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
           return durationInHours >= lowerBound && durationInHours <= upperBound;
         })
       );
+      let isLayoverDurationFilter = true
     }
 
+    let areConnectedAirportsFilter = false
     const areAllConnectionsSelected = connectingAirports.every(airport => airport.checked);
     if (!areAllConnectionsSelected) {
       const unselectedConnections = connectingAirports
@@ -190,7 +251,10 @@ const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
       newFlights = newFlights.filter(flight => 
         flight.layover === null || !flight.layover.some(layover => unselectedConnections.includes(layover.id))
       );
+      areConnectedAirportsFilter = true
     }
+
+    setIsConnectingAirportsFilter(isLayoverDurationFilter || areConnectedAirportsFilter)
 
     setDisplayedFlights(newFlights)
 
@@ -204,7 +268,7 @@ const FilterComponent = ({displayedFlights, setDisplayedFlights}) => {
           <button
             key={filter}
             ref={el => filterButtonRefs.current[filter] = el}
-            className={`filter-chip ${openFilter === filter ? 'active' : ''}`}
+            className={`${getFilterName(filter)} ${openFilter === filter ? 'active' : ''}`}
             onClick={() => handleFilterClick(filter)}
           >
             {filter}

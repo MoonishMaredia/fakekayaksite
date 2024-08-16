@@ -63,11 +63,29 @@ const FlightResultsPage = () => {
   const handleChatClose = () => setIsChatOpen(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [airlinesFilter, setAirlinesFilter] = useState({});
+  const [connectingAirports, setConnectingAirports] = useState([]);
+  const [priceFilter, setPriceFilter] = useState(0);
+  const [stopsFilter, setStopsFilter] = useState(100);
+  const [timeFilter, setTimeFilter] = useState({ 'departure': [0, 24], 'arrival': [0, 24] });
+  const [layoverDuration, setLayoverDuration] = useState([0, 0]);
+  const [totalDuration, setTotalDuration] = useState([0, 0]);
 
   function handleSort(value) {
     setSortMethod(value)
     setDisplayedFlights(sortFlights(displayedFlights, value))
   }
+
+  const handleAirportsFilterSelection = (airportIds) => {
+    setConnectingAirports((prevAirports) => {
+      return prevAirports.map(airport=> {
+        if(airportIds.includes(airport.id)) {
+          airport.checked=true
+        }
+        return airport
+      })
+    });
+  };
 
   async function handleSingleAirportChange(takeOff, newAirport) {
     let resultsData = {}
@@ -286,7 +304,24 @@ const FlightResultsPage = () => {
           handleReturnDateChange={handleReturnDateChange}
           handleAirportChange={handleSingleAirportChange}
         />
-        <FilterComponent displayedFlights={displayedFlights} setDisplayedFlights={setDisplayedFlights} />
+        <FilterComponent 
+          displayedFlights={displayedFlights} 
+          setDisplayedFlights={setDisplayedFlights} 
+          isReturnFlightPage={isReturnFlightPage}
+          airlinesFilter = {airlinesFilter}
+          setAirlinesFilter = {setAirlinesFilter}
+          connectingAirports = {connectingAirports}
+          setConnectingAirports = {setConnectingAirports}
+          priceFilter = {priceFilter}
+          setPriceFilter = {setPriceFilter}
+          stopsFilter = {stopsFilter}
+          setStopsFilter = {setStopsFilter}
+          timeFilter = {timeFilter}
+          setTimeFilter = {setTimeFilter}
+          layoverDuration = {layoverDuration}
+          setLayoverDuration = {setLayoverDuration}
+          totalDuration = {totalDuration}
+          setTotalDuration = {setTotalDuration}/>
         <Box sx={{ display: 'flex', flexDirection: 'column', maxWidth: isMobile ? '100%' : '82%', gap: 2 }}>
         {isReturnFlightPage &&
             <SelectedFlightPill
@@ -317,6 +352,13 @@ const FlightResultsPage = () => {
       handleSingleAirportChange={handleSingleAirportChange}
       handleStartDateChange={handleStartDateChange}
       handleReturnDateChange={handleReturnDateChange}
+      setAirlinesFilter = {setAirlinesFilter}
+      handleAirportsFilterSelection = {handleAirportsFilterSelection}
+      setPriceFilter = {setPriceFilter}
+      setStopsFilter = {setStopsFilter}
+      setTimeFilter = {setTimeFilter}
+      setLayoverDuration = {setLayoverDuration}
+      setTotalDuration = {setTotalDuration}
       // setLoading={setLoading}
       // handleSubmit={handleSubmit}
       // getCompletedObject={getCompletedObject}

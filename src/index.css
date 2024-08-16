@@ -50,3 +50,7 @@ p {
 .messages > p {
   font-weight: 400;
 }
+
+.filter-active {
+  background-color: rgb(224 242 254);
+}

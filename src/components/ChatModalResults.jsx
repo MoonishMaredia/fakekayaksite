@@ -20,7 +20,14 @@ const ChatModal = ({open, onClose,
   handleMultipleAirportChange, 
   handleSingleAirportChange,
   handleStartDateChange,
-  handleReturnDateChange}) => {
+  handleReturnDateChange,
+  setAirlinesFilter,
+  handleAirportsFilterSelection,
+  setPriceFilter,
+  setStopsFilter,
+  setTimeFilter,
+  setLayoverDuration,
+  setTotalDuration}) => {
 
   const {searchInputs, setSearchInputs} = useInput({});
   const {results, setResults} = useResults({})
@@ -98,13 +105,11 @@ const ChatModal = ({open, onClose,
     }
   }
 
-
   function runSetFunctions(setter, arg) {
 
     console.log("Inside set functions")
 
     if(setter==="setTripType") {
-      // console.log("Setting trip type")
       if(!['Round-trip','One-way'].includes(arg)) {
         return {"msg":400, "error":"invalid specification for trip type, should be Round-trip or One-Way"}
       } else {
@@ -113,7 +118,6 @@ const ChatModal = ({open, onClose,
       }
 
     } else if(setter==="setStartDate") {
-      // console.log("Setting start date")
       const res = verifyDate("start_date", arg)
       if(res.msg===200) {
         handleStartDateChange(arg, true)
@@ -123,7 +127,6 @@ const ChatModal = ({open, onClose,
       }
 
     } else if(setter==="setReturnDate") {
-      // console.log("Setting return date")
       const res = verifyDate("return_date", arg)
       if(res.msg===200) {
         handleReturnDateChange(arg, true)
@@ -133,7 +136,6 @@ const ChatModal = ({open, onClose,
       }
 
     } else if(setter==="setPassengers") {
-      // console.log("Setting # of passengers")
       const res = verifyMinMaxType("num_passengers", arg)
       if(res.msg===200) {
         setSearchInputs(prev=>({...prev, 'num_passengers': parseInt(res.arg)}))
@@ -143,7 +145,6 @@ const ChatModal = ({open, onClose,
       }
     
     } else if(setter==="setSeatType") {
-      // console.log("Setting seat type")
      if(!['Economy','Business'].includes(arg)) {
       return {"msg":400, "error":"Invalid ticket type. It should be either Economy or Business"}
     } else {
@@ -152,7 +153,6 @@ const ChatModal = ({open, onClose,
     }
 
     } else if(setter==="setCarryOnBags") {
-      // console.log("Setting # of carry on bags")
       const res = verifyMinMaxType("num_carryOn", arg)
       if(res.msg===200) {
         setSearchInputs(prev=>({...prev, 'num_carryOn': parseInt(res.arg)}))
@@ -162,7 +162,6 @@ const ChatModal = ({open, onClose,
       }
 
     } else if(setter==="setCheckedBags") {
-      // console.log("Setting # of checked bags")
       const res = verifyMinMaxType("num_checked", arg)
       if(res.msg===200) {
         setSearchInputs(prev=>({...prev, 'num_checked': parseInt(res.arg)}))
@@ -184,21 +183,17 @@ const ChatModal = ({open, onClose,
     const array = cleanedResponse.split(',').map(str => str.trim());
     let returnMsg = {}
 
-    console.log("Inside run update function. Here's the array of updates:", array)
-
     try {
       for (let i = 0; i < array.length; i += 2) {
         const setter1 = array[i];
         const arg1 = array[i + 1];
-        // console.log(setter1, arg1)
         if(['setFlyingFrom','setFlyingTo'].includes(setter1) && i+3 < array.length && ['setFlyingFrom','setFlyingTo'].includes(array[i+2])) {
           const setter2 = array[i+2]
           const arg2 = array[i+3]
-          // console.log(setter2, arg2)
           returnMsg = await runUpdateSubFunctions(setter1, arg1, setter2, arg2, true);
           i+=2
         } else {
-            returnMsg = await runUpdateSubFunctions(setter1, arg1)
+          returnMsg = await runUpdateSubFunctions(setter1, arg1)
         }
 
         if(returnMsg.msg===400) {
@@ -216,15 +211,12 @@ const ChatModal = ({open, onClose,
 
   async function runUpdateSubFunctions(setter1, arg1, setter2=null, arg2=null, multipleArgs=false) {
 
-    console.log("Inside run update sub function. Here's the args:", setter1, arg1, setter2, arg2)
 
     if(multipleArgs) {
       const message = verifyAirportCode(setter1, arg1, setter2, arg2, multipleArgs=true)
       if(message.msg === 400) {
         return {"msg":400, "error":message.error}
       } else {
-        console.log("Getting Results")
-        // setSearchInputs(prev=>({...prev, 'flying_from':arg1, 'flying_to':arg2}))
         handleMultipleAirportChange(arg1, arg2)
       }
       return {"msg":200}
@@ -236,20 +228,81 @@ const ChatModal = ({open, onClose,
         return {"msg":400, "error":message.error}
       } else {
         if(setter1==="setFlyingFrom") {
-          // console.log("Getting Results")
           handleSingleAirportChange(true, arg1)
         } else if(setter1==="setFlyingTo") {
-          // console.log("Getting Results")
           handleSingleAirportChange(false, arg1)
         }
       }
       return {"msg":200}
     } else {
-      // console.log("Running other set functions")
       const result = runSetFunctions(setter1, arg1)
       return result
     }
   }
+
+  function formatFilterResponse(filterResponse) {
+
+    const cleanedResponse = filterResponse.slice(1, -1).trim();
+    const parts = cleanedResponse.split(/,(?![^{\[]*[}\]])/).map(part => part.trim());
+    const filters = {};
+
+    for (let i = 0; i < parts.length; i += 2) {
+      const filterName = parts[i];
+      let filterValue = parts[i + 1];
+      if (filterValue.startsWith('{') && filterValue.endsWith('}')) {
+        filterValue = JSON.parse(filterValue.replace(/'/g, '"')); // Parse object
+      } else if (filterValue.startsWith('[') && filterValue.endsWith(']')) {
+        filterValue = JSON.parse(filterValue.replace(/'/g, '"')); // Parse array
+      }
+      filters[filterName] = filterValue;
+    }
+    return filters
+  }
+
+  async function runFilterFunction(userMessage, prevAIMessage) {
+      // const filterResponse = await makeFilterRequest(userMessage, prevAIMessage)
+      const filterResponse = "[stops, 0, airlines, {'American':true, 'Delta':false, 'JetBlue':false}, price, 200, departureTime, [7,20], arrivalTime, [1,23], totalDuration, [0,5], connectingAirports, ['BOS']]"
+      const finalFilters = formatFilterResponse(filterResponse)
+      console.log(finalFilters)
+      for (let key of Object.keys(finalFilters)) {
+        const filterItem = key
+        const filterValue = finalFilters[key]
+        updateFilter(filterItem, filterValue)
+      }
+      
+  }
+
+  function updateFilter(filterItem, filterValue) {
+    console.log(filterItem, filterValue)
+    switch (filterItem) {
+      case "stops":
+        setStopsFilter(parseInt(filterValue))
+        return
+      case "airlines":
+        setAirlinesFilter(filterValue)
+        return
+      case "price":
+        setPriceFilter(parseInt(filterValue))
+        return
+      case "departureTime":
+        setTimeFilter(prev=>({...prev, "departure": filterValue.reduce((acc, curr)=>[...acc, parseInt(curr)],[])}))
+        return
+      case "arrivalTime":
+        setTimeFilter(prev=>({...prev, "arrival": filterValue.reduce((acc, curr)=>[...acc, parseInt(curr)],[])}))
+        return
+      case "connectingAirports":
+        handleAirportsFilterSelection(filterValue)
+        return
+      case "layoverDuration":
+        setLayoverDuration(parseInt(filterValue))
+        return
+      case "totalDuration":
+        setTotalDuration(filterValue.reduce((acc, curr)=>[...acc, parseInt(curr)],[]))
+        return
+      default:
+        return {"msg":400, "error":"Unidenfitied filter called"}
+  }
+}
 
   function commandCenter(triageResponse, userMessage, prevAIMessage) {
 
@@ -263,17 +316,15 @@ const ChatModal = ({open, onClose,
       const cleanedResponse = triageResponse.replace(/\[|\]/g, '');
       const array = cleanedResponse.split(',').map(str => str.trim());
 
-      console.log("Triage Array:", array, triageResponse, cleanedResponse)
-      
       for (let i = 0; i < array.length; i++) {
         const action = array[i];
         console.log("Action:", action)
         if(action==="update") {
-          console.log("I am here")
           runUpdateFunction(userMessage, prevAIMessage)
-        } else {
-          // runActionFunction(action);
-          console.log("Run action function later!")
+        } else if(action==="filter") {
+          runFilterFunction(userMessage, prevAIMessage)
+        } else if(action==="sort") {
+          // runSortFunction(userMessage, prevAIMessage)
         }
       }
     } catch (error) {
