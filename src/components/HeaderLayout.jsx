@@ -14,7 +14,7 @@ const HeaderLayout = ({ onChatOpen }) => {
     <AppBar position="static" color="default" elevation={0}>
       <Toolbar>
         <Typography variant="h6" sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', textAlign: 'left'}}>
-        <FlightIcon sx={{mr: 1}}/>
+        <FlightIcon sx={{mr: 1, color: "#FF6B00"}}/>
           FakeKayak
         </Typography>
         <IconButton color="inherit" onClick={onChatOpen}>

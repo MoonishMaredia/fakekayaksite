@@ -82,7 +82,7 @@ const SearchForm = ({
   return (
     <>
       <Typography variant="h4" component="h1" sx={{ textAlign: 'center' }} gutterBottom>
-        Search fake flights in the USA using an AI assistant
+        Book fake U.S. flights using GPT
       </Typography>
       <Box sx={{ mb: 2, mt: 6, display: 'flex', alignItems: 'center' }}>
       <Select
