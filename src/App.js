@@ -1,11 +1,11 @@
 import logo from './logo.svg';
 import InputLayout from './pages/InputLayout.jsx'
 import ResultsLayout from './pages/ResultsLayout.jsx'
-import BookingLayout from './pages/BookingLayout';
+import BookingLayout from './pages/BookingLayout.jsx';
 import { Route, Routes, Navigate } from "react-router-dom"
-import { InputProvider } from './components/InputContext'
-import { ResultsProvider} from './components/ResultsContext'
-import { BookingProvider } from './components/BookingContext';
+import { InputProvider } from './components/InputContext.js'
+import { ResultsProvider} from './components/ResultsContext.js'
+import { BookingProvider } from './components/BookingContext.js';
 import { MutexProvider } from './components/MutexContext.js'
 
 function App() {

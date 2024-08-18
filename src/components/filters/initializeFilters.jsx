@@ -1,4 +1,4 @@
-import { airportCodes } from '../busyairportcodes.js';
+import { airportCodes } from '../../busyairportcodes.js';
 
 export const initializeFilters = (results, searchInputs) => {
   const allAirlines = Array.from(new Set(results.map(flight => flight.airline)));

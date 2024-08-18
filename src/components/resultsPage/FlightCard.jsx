@@ -12,8 +12,8 @@ import {
 import WarningIcon from '@mui/icons-material/Warning';
 import FlightCardMobile from './FlightCardMobile';
 import FlightCardDesktop from './FlightCardDesktop';
-import { airportCodes } from '../busyairportcodes.js';
-import {useInput} from './InputContext'
+import { airportCodes } from '../../busyairportcodes.js';
+import {useInput} from '../InputContext.js'
 
 
 const FlightCard = ({ isMobile, flightData, isReturnFlightPage, handleFlightSelection}) => {

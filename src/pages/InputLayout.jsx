@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Container, Box } from '@mui/material';
 import HeaderLayout from '../components/HeaderLayout';
-import SearchForm from '../components/SearchForm';
-import ChatModal from '../components/ChatModal';
-import LoadingIndicator from '../components/LoadingIndicator'
+import SearchForm from '../components/inputsPage/SearchForm';
+import ChatModal from '../components/chat/ChatModal';
+import LoadingIndicator from '../components/inputsPage/LoadingIndicator.jsx'
 import { useNavigate } from 'react-router-dom';
 import { getFlightResults } from '../utils/api';
 import {useInput} from '../components/InputContext.js'

@@ -2,9 +2,9 @@ import React from 'react';
 import { Box, Paper, TextField } from '@mui/material';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import AirportAutocomplete from './AirportAutocomplete';
+import AirportAutocomplete from '../shared/AirportAutocomplete.jsx';
 import { CalendarToday } from '@mui/icons-material';
-import { useInput } from './InputContext.js';
+import { useInput } from '../InputContext.js';
 import moment from 'moment';
 
 const FlightSearchBar = ({ isMobile, handleStartDateChange, handleReturnDateChange, handleAirportChange }) => {

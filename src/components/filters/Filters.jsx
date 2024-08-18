@@ -1,15 +1,15 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { Chip } from '@mui/material';
-import '../FilterComponent.css'; // We'll create this CSS file for styling
-import { useResults } from './ResultsContext';
-import { useInput } from './InputContext';
-import PriceFilter from './filters/PriceFilter';
-import StopsFilter from './filters/StopsFilter';
-import AirlinesFilter from './filters/AirlinesFilter';
-import TimesFilter from './filters/TimesFilter';
-import ConnectingAirportsFilter from './filters/ConnectingAirportsFilter';
-import LayoverDurationFilter from './filters/LayoverDurationFilter';
-import TotalDurationFilter from './filters/TotalDurationFilter';
+import './FilterComponent.css'; // We'll create this CSS file for styling
+import { useResults } from '../ResultsContext';
+import { useInput } from '../InputContext';
+import PriceFilter from './PriceFilter';
+import StopsFilter from './StopsFilter';
+import AirlinesFilter from './AirlinesFilter';
+import TimesFilter from './TimesFilter';
+import ConnectingAirportsFilter from './ConnectingAirportsFilter';
+import LayoverDurationFilter from './LayoverDurationFilter';
+import TotalDurationFilter from './TotalDurationFilter';
 import initializeFilters from './initializeFilters';
 
 const FilterComponent = ({

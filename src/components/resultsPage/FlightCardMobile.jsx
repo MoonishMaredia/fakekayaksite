@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import {useInput} from './InputContext.js'
+import {useInput} from '../InputContext.js'
 
 const options = { year: 'numeric', month: 'numeric', day: 'numeric', timeZone: 'UTC' };
 

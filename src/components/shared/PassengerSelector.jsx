@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography, IconButton, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
-import {useInput} from './InputContext.js'
+import {useInput} from '../InputContext.js'
 
 const PassengerSelector = () => {
 

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Box, TextField, InputAdornment, MenuItem, Popover } from '@mui/material';
 import { ArrowDropDown, Person, FlightTakeoff, LuggageOutlined } from '@mui/icons-material';
-import PassengerSelector from './PassengerSelector';
-import BagSelector from './BagSelector';
-import {useInput} from './InputContext'
+import PassengerSelector from '../shared/PassengerSelector';
+import BagSelector from '../shared/BagSelector';
+import {useInput} from '../InputContext'
 
 const customStyles = {
     '& .MuiOutlinedInput-root': {

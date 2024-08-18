@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Autocomplete, TextField } from '@mui/material';
 import { FlightTakeoff, FlightLand } from '@mui/icons-material';
-import { airportCodes } from '../busyairportcodes.js';
-import { airportCodesArray } from '../busyairportcodes.js';
-import { useInput } from './InputContext.js'
+import { airportCodes } from '../../busyairportcodes.js';
+import { airportCodesArray } from '../../busyairportcodes.js';
+import { useInput } from '../InputContext.js'
 
 const AirportAutocomplete = ({ placeholderText, takeOff, handleAirportChange }) => {
   const { searchInputs, setSearchInputs } = useInput({})

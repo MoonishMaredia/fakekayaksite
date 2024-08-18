@@ -15,16 +15,16 @@ import {
   FormControl,
   InputLabel
 } from '@mui/material';
-import AirportAutocomplete from './AirportAutocomplete';
-import PassengerSelector from './PassengerSelector';
-import BagSelector from './BagSelector';
+import AirportAutocomplete from '../shared/AirportAutocomplete.jsx';
+import PassengerSelector from '../shared/PassengerSelector.jsx';
+import BagSelector from '../shared/BagSelector.jsx';
 import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 import FlightLandIcon from '@mui/icons-material/FlightLand';
 import EventIcon from '@mui/icons-material/Event';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import LuggageIcon from '@mui/icons-material/Luggage';
-import {airpotCodes} from '../airportcodes.js'
-import {useInput} from './InputContext.js'
+import {airpotCodes} from '../../airportcodes.js'
+import {useInput} from '../InputContext.js'
 
 const SearchForm = ({
     handleSubmit

@@ -3,7 +3,7 @@ import {
     Typography,
     Grid
   } from '@mui/material';
-import {useInput} from '../components/InputContext.js'
+import {useInput} from '../InputContext.js'
 import ModeEditOutlineIcon from '@mui/icons-material/ModeEditOutline';
 export default function SelectedFlightPill({departFlight, setIsReturnFlightPage}) {
     

@@ -1,21 +1,19 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Box, useMediaQuery, useTheme, CircularProgress, Typography } from '@mui/material';
-import TripOptionsBar from '../components/TripOptionsBar';
-import FlightSearchBar from '../components/FlightSearchBar';
-import FilterComponent from '../components/Filters';
-import FlightCard from '../components/FlightCard';
-import SortTitleBar from '../components/SortTitleBar';
-import SelectedFlightPill from '../components/SelectedFlightPill';
+import TripOptionsBar from '../components/resultsPage/TripOptionsBar';
+import FlightSearchBar from '../components/resultsPage/FlightSearchBar';
+import FilterComponent from '../components/filters/Filters.jsx';
+import FlightCard from '../components/resultsPage/FlightCard';
+import SortTitleBar from '../components/resultsPage/SortTitleBar';
+import SelectedFlightPill from '../components/resultsPage/SelectedFlightPill';
 import HeaderLayout from '../components/HeaderLayout';
 import { useInput } from '../components/InputContext.js';
-import { useResults } from '../components/ResultsContext';
-import { useBooking } from '../components/BookingContext'
+import { useResults } from '../components/ResultsContext.js';
+import { useBooking } from '../components/BookingContext.js'
 import { useNavigate } from 'react-router-dom';
 import {getFlightScalars, getFlightResults} from '../utils/api.js'
-import ChatModal from '../components/ChatModalResults'
+import ChatModal from '../components/chat/ChatModalResults.jsx'
 import moment from 'moment';
-
-
 
 const seatScalar = {
   Economy: 1,
@@ -48,21 +46,22 @@ const getCheckedFees = (airline, numBags) => {
 };
 
 const FlightResultsPage = () => {
+  
   const { searchInputs, setSearchInputs } = useInput({});
   const { results, setResults } = useResults({});
   const { bookingDetails, setBookingDetails } = useBooking({});
-  const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate();
+
+  const [isLoading, setIsLoading] = useState(false)
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [displayedFlights, setDisplayedFlights] = useState(results['data']);
   const [sortMethod, setSortMethod] = useState("Lowest Total Price");
-  const [isChatOpen, setIsChatOpen] = useState(false);
+
   const [isReturnFlightPage, setIsReturnFlightPage] = useState(false)
   const [departFlight, setDepartFlight] = useState({})
   const [returnFlight, setReturnFlight] = useState({})
-  const handleChatOpen = () => setIsChatOpen(true);
-  const handleChatClose = () => setIsChatOpen(false);
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   const [airlinesFilter, setAirlinesFilter] = useState({});
   const [connectingAirports, setConnectingAirports] = useState([]);
   const [priceFilter, setPriceFilter] = useState(0);
@@ -70,6 +69,10 @@ const FlightResultsPage = () => {
   const [timeFilter, setTimeFilter] = useState({ 'departure': [0, 24], 'arrival': [0, 24] });
   const [layoverDuration, setLayoverDuration] = useState([0, 0]);
   const [totalDuration, setTotalDuration] = useState([0, 0]);
+
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const handleChatOpen = () => setIsChatOpen(true);
+  const handleChatClose = () => setIsChatOpen(false);
 
   function getCompletedObject() {
     const objStr = {
@@ -102,9 +105,6 @@ const FlightResultsPage = () => {
       })
     });
   };
-
-
-
 
   async function handleSingleAirportChange(takeOff, newAirport) {
     let resultsData = {}
@@ -432,6 +432,5 @@ function sortFlights(flights, sortBy) {
     }
   });
 }
-
 
 export default FlightResultsPage;

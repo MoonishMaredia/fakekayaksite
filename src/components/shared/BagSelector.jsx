@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Typography, IconButton } from '@mui/material';
 import LuggageIcon from '@mui/icons-material/Luggage';
-import {useInput} from './InputContext.js'
+import {useInput} from '../InputContext.js'
 
 const BagSelector = () => {
 

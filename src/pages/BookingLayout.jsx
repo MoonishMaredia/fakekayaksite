@@ -1,8 +1,8 @@
 import { Typography, Box, useMediaQuery, useTheme } from '@mui/material';
 import HeaderLayout from '../components/HeaderLayout';
-import FlightCard from '../components/FlightCard';
+import FlightCard from '../components/resultsPage/FlightCard';
 import {useInput} from '../components/InputContext.js'
-import {useResults} from '../components/ResultsContext'
+import {useResults} from '../components/ResultsContext.js'
 import {useBooking} from '../components/BookingContext.js'
 
 export default function BookingLayout() {
