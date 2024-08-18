@@ -6,10 +6,12 @@ import { Route, Routes, Navigate } from "react-router-dom"
 import { InputProvider } from './components/InputContext'
 import { ResultsProvider} from './components/ResultsContext'
 import { BookingProvider } from './components/BookingContext';
+import { MutexProvider } from './components/MutexContext.js'
 
 function App() {
   return (
     <main className="App">
+      <MutexProvider>
       <BookingProvider>
       <InputProvider>
       <ResultsProvider> 
@@ -22,6 +24,7 @@ function App() {
       </ResultsProvider>
       </InputProvider>
       </BookingProvider>
+      </MutexProvider>
     </main>
   );
 }

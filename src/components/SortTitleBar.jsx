@@ -41,10 +41,10 @@ export default function SortTitleBar({isMobile, sortMethod, handleSort, isReturn
             >
             <MenuItem value="Lowest Total Price">Lowest Total Price</MenuItem>
             <MenuItem value="Shortest Duration">Shortest Duration</MenuItem>
-            <MenuItem value="Earliest Takeoff Time">Earliest Takeoff</MenuItem>
-            <MenuItem value="Earliest Arrival Time">Earliest Arrival</MenuItem>
-            <MenuItem value="Latest Takeoff Time">Latest Takeoff</MenuItem>
-            <MenuItem value="Latest Arrival Time">Latest Arrival</MenuItem>
+            <MenuItem value="Earliest Takeoff">Earliest Takeoff</MenuItem>
+            <MenuItem value="Earliest Arrival">Earliest Arrival</MenuItem>
+            <MenuItem value="Latest Takeoff">Latest Takeoff</MenuItem>
+            <MenuItem value="Latest Arrival">Latest Arrival</MenuItem>
         </TextField>
         </Box>
         </Box>

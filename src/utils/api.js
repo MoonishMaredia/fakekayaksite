@@ -25,13 +25,30 @@ export async function makeTriageRequests(userMessage, prevAIMessage) {
 
   const postInput = { 
     userMessage, 
-    prevAIMessage, 
   };
 
   try {
     const data = await axios.post(process.env.REACT_APP_BACKEND_URL + "/makeTriageRequest", postInput)
     .then(res => res.data);
     return data.triageResponse
+  } catch (error) {
+    console.error("Error making API call:", error);
+    return {"Error": error}
+  }
+
+}
+
+export async function makeUpdateRequest(userMessage, inputObjString) {
+
+  const postInput = { 
+    userMessage, 
+    inputObjString :JSON.stringify(inputObjString)
+  };
+
+  try {
+    const data = await axios.post(process.env.REACT_APP_BACKEND_URL + "/makeUpdateRequest", postInput)
+    .then(res => res.data);
+    return data.updateResponse
   } catch (error) {
     console.error("Error making API call:", error);
     return {"Error": error}

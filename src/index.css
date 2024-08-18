@@ -54,3 +54,13 @@ p {
 .filter-active {
   background-color: rgb(224 242 254);
 }
+
+.update-text {
+  font-size: 1.25rem;
+  margin-bottom: 20px;
+  color: rgb(3 105 161);
+}
+
+.no-match-text {
+  font-size: 1.5rem;
+}

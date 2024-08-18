@@ -69,11 +69,13 @@ const FilterComponent = ({
 
   useEffect(() => {
     if (filterOptions) {
+      setStopsFilter(100)
       setAirlinesFilter(filterOptions.airlinesFilterOptions);
       setConnectingAirports(filterOptions.connectingAirportsFilterOptions);
       setPriceFilter(filterOptions.maxPrice);
       setLayoverDuration([0, filterOptions.maxLayoverDuration]);
       setTotalDuration([0, filterOptions.maxDuration]);
+      setTimeFilter({ 'departure': [0, 24], 'arrival': [0, 24] })
     }
   }, [filterOptions]);
 
@@ -195,7 +197,7 @@ const FilterComponent = ({
     }
 
     if (priceFilter !== filterOptions.maxPrice) {
-      newFlights = newFlights.filter(flight => flight.trip_cost <= priceFilter);
+      newFlights = newFlights.filter(flight => flight.totalFlightCost <= priceFilter);
       setIsPriceFilter(true)
     } else {
       setIsPriceFilter(false)
@@ -203,7 +205,6 @@ const FilterComponent = ({
 
     let isTimeDepartureFilter = false
     if (timeFilter['departure'][0] !== 0 || timeFilter['departure'][1] !== 24) {
-      console.log(timeFilter)
       const [lowerBound, upperBound] = timeFilter['departure'];
       newFlights = newFlights.filter(flight => flight.start_time_hours >= lowerBound && flight.start_time_hours <= upperBound);
       isTimeDepartureFilter = true

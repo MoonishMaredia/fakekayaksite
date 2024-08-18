@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Box, useMediaQuery, useTheme } from '@mui/material';
+import { Box, useMediaQuery, useTheme, CircularProgress, Typography } from '@mui/material';
 import TripOptionsBar from '../components/TripOptionsBar';
 import FlightSearchBar from '../components/FlightSearchBar';
 import FilterComponent from '../components/Filters';
@@ -51,7 +51,7 @@ const FlightResultsPage = () => {
   const { searchInputs, setSearchInputs } = useInput({});
   const { results, setResults } = useResults({});
   const { bookingDetails, setBookingDetails } = useBooking({});
-
+  const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate();
   const [displayedFlights, setDisplayedFlights] = useState(results['data']);
   const [sortMethod, setSortMethod] = useState("Lowest Total Price");
@@ -71,6 +71,22 @@ const FlightResultsPage = () => {
   const [layoverDuration, setLayoverDuration] = useState([0, 0]);
   const [totalDuration, setTotalDuration] = useState([0, 0]);
 
+  function getCompletedObject() {
+    const objStr = {
+      "trip_type": searchInputs.trip_type,
+      "flying_from": searchInputs.flying_from,
+      "flying_to": searchInputs.flying_to,
+      "start_date": searchInputs.start_date,
+      "return_date": searchInputs.return_date,
+      "num_passengers": searchInputs.num_passengers,
+      "seat_type":  searchInputs.seat_type,
+      "num_carryOn": searchInputs.num_carryOn,
+      "num_checked": searchInputs.num_checked
+    };
+
+    return objStr
+  }
+
   function handleSort(value) {
     setSortMethod(value)
     setDisplayedFlights(sortFlights(displayedFlights, value))
@@ -86,6 +102,9 @@ const FlightResultsPage = () => {
       })
     });
   };
+
+
+
 
   async function handleSingleAirportChange(takeOff, newAirport) {
     let resultsData = {}
@@ -243,8 +262,8 @@ const FlightResultsPage = () => {
           setDisplayedFlights(sortFlights(flightArray, sortMethod))
         }
 
-  }, [searchInputs.num_passengers, searchInputs.seat_type, searchInputs.num_checked, searchInputs.num_carryOn, 
-    searchInputs.start_date, searchInputs.flying_from]);
+  }, [searchInputs.trip_type, searchInputs.num_passengers, searchInputs.seat_type, searchInputs.num_checked, searchInputs.num_carryOn, 
+    searchInputs.start_date, searchInputs.flying_from, searchInputs.flying_to]);
 
   useEffect(() => {
 
@@ -268,8 +287,8 @@ const FlightResultsPage = () => {
           setDisplayedFlights(sortFlights(flightArray, sortMethod))
         }
 
-  }, [searchInputs.num_passengers, searchInputs.seat_type, searchInputs.num_checked, searchInputs.num_carryOn, 
-    searchInputs.return_date, searchInputs.flying_to]);
+  }, [searchInputs.trip_type, searchInputs.num_passengers, searchInputs.seat_type, searchInputs.num_checked, searchInputs.num_carryOn, 
+    searchInputs.return_date, searchInputs.flying_from, searchInputs.flying_to]);
 
 
   useEffect(()=> {
@@ -296,7 +315,6 @@ const FlightResultsPage = () => {
           gap: 1,
         }}
       >
-        {/* <button onClick={()=>setIsReturnFlightPage(prev=>!prev)}>Click ME</button> */}
         <TripOptionsBar isMobile={isMobile} />
         <FlightSearchBar 
           isMobile={isMobile} 
@@ -333,14 +351,28 @@ const FlightResultsPage = () => {
           handleSort={handleSort} 
           isMobile={isMobile} 
           isReturnFlightPage={isReturnFlightPage}/>
-          {displayedFlights.map((flight, index) => (
-            <FlightCard 
-            key={index} 
-            isMobile={isMobile} 
-            flightData={flight} 
-            isReturnFlightPage={isReturnFlightPage}
-            handleFlightSelection={handleFlightSelection}/>
-          ))}
+          {isLoading ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '50vh', width: '100%' }}>
+              <p className="update-text">Updating Results...</p>
+              <CircularProgress />
+            </Box>
+          ) : (
+            displayedFlights.length > 0 ? (
+              displayedFlights.map((flight, index) => (
+                <FlightCard 
+                  key={index} 
+                  isMobile={isMobile} 
+                  flightData={flight} 
+                  isReturnFlightPage={isReturnFlightPage}
+                  handleFlightSelection={handleFlightSelection}
+                />
+              ))
+            ) : (
+              <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '50vh', width: '100%' }}>
+                <p className="no-match-text">No matching results found</p>
+              </Box>
+            )
+          )}
         </Box>
       </Box>
     </Box>
@@ -359,12 +391,9 @@ const FlightResultsPage = () => {
       setTimeFilter = {setTimeFilter}
       setLayoverDuration = {setLayoverDuration}
       setTotalDuration = {setTotalDuration}
-      // setLoading={setLoading}
-      // handleSubmit={handleSubmit}
-      // getCompletedObject={getCompletedObject}
-      // fieldErrors={fieldErrors}
-      // setFieldErrors={setFieldErrors}
-      />
+      handleSort={handleSort}
+      setIsLoading={setIsLoading}
+      getCompletedObject={getCompletedObject}/>
     </Box>
   );
 };
@@ -386,16 +415,16 @@ function sortFlights(flights, sortBy) {
       case 'Shortest Duration':
         return a.total_duration - b.total_duration;
       
-      case 'Earliest Takeoff Time':
+      case 'Earliest Takeoff':
         return extractTime(a.start_time) - extractTime(b.start_time);
       
-      case 'Earliest Arrival Time':
+      case 'Earliest Arrival':
         return extractTime(a.end_time) - extractTime(b.end_time);
       
-      case 'Latest Takeoff Time':
+      case 'Latest Takeoff':
         return extractTime(b.start_time) - extractTime(a.start_time);
       
-      case 'Latest Arrival Time':
+      case 'Latest Arrival':
         return extractTime(b.end_time) - extractTime(a.end_time);
       
       default:
