@@ -10,7 +10,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import ChatComponent from './ChatComponent';
 import { marked } from 'marked'; // Import marked for Markdown parsing
-import { makeGPTRequests, makeTriageRequests, getFlightResults, makeUpdateRequest} from '../../utils/api';
+import { makeGPTRequests, makeTriageRequests, getFlightResults, makeUpdateRequest, makeSortRequest} from '../../utils/api';
 import { getLandingResultsChatHTML, getLandingResultsChatMessage, verifyAirportCode, verifyDate, verifyMinMaxType } from '../../utils/other';
 import {airportCodes} from '../../busyairportcodes'
 import { useInput } from '../InputContext'
@@ -160,8 +160,6 @@ const ChatModal = ({open, onClose,
     const updateResponse = await makeUpdateRequest(userMessage, getCompletedObject())
     const cleanedResponse = updateResponse.replace(/\[|\]/g, '');
     const array = cleanedResponse.split(',').map(str => str.trim());
-    console.log(array)
-
 
     if(array[0] === "") {
       setMessages((prev) => [{sender: 'ai', text: "Your update request couldn't be completed. Can you restate your request more clearly?" }, ...prev]);
@@ -284,12 +282,18 @@ const ChatModal = ({open, onClose,
   }
 
   async function runSortFunction(userMessage) {
-    const sortResponse = "[Shortest Duration]"
+    const sortResponse = await makeSortRequest(userMessage)
     const cleanedResponse = sortResponse.replace(/\[|\]/g, '');
-    const sortMsg = cleanedResponse.trim();
+    const array = cleanedResponse.trim();
+    console.log(array)
+
+    if(array[0] === "") {
+      setMessages((prev) => [{sender: 'ai', text: "Your sort request couldn't be completed. Can you restate your request more clearly?" }, ...prev]);
+      return {"msg":400};
+    }
   
     return new Promise((resolve) => {
-      updateSort(sortMsg);
+      updateSort(array);
       resolve();
     });
   }

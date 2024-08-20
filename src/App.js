@@ -16,8 +16,8 @@ function App() {
       <InputProvider>
       <ResultsProvider> 
       <Routes>
-        <Route exact path= "/" element={<Navigate replace to="/inputs"/>}></Route>
-        <Route path= "inputs" element={<InputLayout />} />
+        <Route exact path= "/" element={<Navigate replace to="/results"/>}></Route>
+        {/* <Route path= "inputs" element={<InputLayout />} /> */}
         <Route path= "results" element={<ResultsLayout />} />
         <Route path= "confirmation" element={<BookingLayout />} />
       </Routes>

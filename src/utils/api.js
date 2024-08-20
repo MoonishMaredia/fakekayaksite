@@ -56,6 +56,22 @@ export async function makeUpdateRequest(userMessage, inputObjString) {
 
 }
 
+export async function makeSortRequest(userMessage) {
+
+  const postInput = { 
+    userMessage
+  };
+
+  try {
+    const data = await axios.post(process.env.REACT_APP_BACKEND_URL + "/makeSortRequest", postInput)
+    .then(res => res.data);
+    return data.sortResponse
+  } catch (error) {
+    console.error("Error making API call:", error);
+    return {"Error": error}
+  }
+}
+
 
 export async function getFlightResults(originCode, destinationCode, tripType, startDate, returnDate) {
 
