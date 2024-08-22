@@ -158,8 +158,11 @@ const ChatModal = ({open, onClose,
   async function runUpdateFunction(userMessage) {
     // const updateResponse = "[setFlyingFrom, IAH, setFlyingTo, PHX, setStartDate, 2024-11-22, setPassengers, 3, setCheckedBags, 2]"
     const updateResponse = await makeUpdateRequest(userMessage, getCompletedObject())
+    console.log(updateResponse)
     const cleanedResponse = updateResponse.replace(/\[|\]/g, '');
+    console.log(cleanedResponse)
     const array = cleanedResponse.split(',').map(str => str.trim());
+    console.log(array)
 
     if(array[0] === "") {
       setMessages((prev) => [{sender: 'ai', text: "Your update request couldn't be completed. Can you restate your request more clearly?" }, ...prev]);

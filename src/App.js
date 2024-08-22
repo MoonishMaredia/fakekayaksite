@@ -1,4 +1,3 @@
-import logo from './logo.svg';
 import InputLayout from './pages/InputLayout.jsx'
 import ResultsLayout from './pages/ResultsLayout.jsx'
 import BookingLayout from './pages/BookingLayout.jsx';

@@ -7,24 +7,19 @@ import {
   TextField,
   Select,
   MenuItem,
-  FormControlLabel,
-  Switch,
   Button,
   Popover,
-  IconButton,
-  FormControl,
-  InputLabel
 } from '@mui/material';
 import AirportAutocomplete from '../shared/AirportAutocomplete.jsx';
 import PassengerSelector from '../shared/PassengerSelector.jsx';
 import BagSelector from '../shared/BagSelector.jsx';
-import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
-import FlightLandIcon from '@mui/icons-material/FlightLand';
 import EventIcon from '@mui/icons-material/Event';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import LuggageIcon from '@mui/icons-material/Luggage';
+import { CalendarToday } from '@mui/icons-material';
 import {airpotCodes} from '../../airportcodes.js'
 import {useInput} from '../InputContext.js'
+import moment from 'moment';
 
 const SearchForm = ({
     handleSubmit
@@ -33,6 +28,9 @@ const SearchForm = ({
   const {searchInputs, setSearchInputs} = useInput({})
   const [passengerAnchorEl, setPassengerAnchorEl] = useState(null);
   const [bagAnchorEl, setBagAnchorEl] = useState(null);
+  const today = new Date();
+  const oneYearFromToday = new Date();
+  oneYearFromToday.setFullYear(today.getFullYear() + 1);
 
   const handlePassengerClick = (event) => {
     setPassengerAnchorEl(event.currentTarget);
@@ -49,6 +47,50 @@ const SearchForm = ({
   const handleBagClose = () => {
     setBagAnchorEl(null);
   };
+
+  function handleAirportChange(takeOff, newAirport) {
+    setSearchInputs(prev => ({...prev, [takeOff ? 'flying_from' : 'flying_to']: newAirport}))
+  }
+
+  // Function to format date to YYYY-MM-DD using moment
+  const formatDate = (date) => {
+    return moment(date).format('YYYY-MM-DD');
+  };
+
+  function addDays(date, days) {
+    let result = new Date(date);
+    result.setDate(result.getDate() + days);
+    return result;
+  }
+
+  function handleStartDateChange(date, isString=false) {
+    let dateStr = ""
+    let newDate = null
+    if(isString) {
+      dateStr = date
+      newDate = new Date(dateStr)
+    } else {
+      dateStr = formatDate(date)
+      newDate = date
+    }
+    setSearchInputs(prev => ({ ...prev, start_date: dateStr }));
+    if(searchInputs.return_date) {
+      if(newDate > new Date(searchInputs.return_date)) {
+        handleReturnDateChange(addDays(date, 7))
+      }
+    }
+  };
+
+  function handleReturnDateChange(date, isString=false) {
+    let dateStr = ""
+    if(isString) {
+      dateStr = date
+    } else {
+      dateStr = formatDate(date)
+    }
+    setSearchInputs(prev => ({ ...prev, return_date: dateStr }));
+  };
+  
 
   const isFormValid = () => {
     // Check for empty strings, null or undefined
@@ -117,51 +159,54 @@ const SearchForm = ({
         <AirportAutocomplete
           placeholderText={"Flying From..."}
           takeOff={true}
+          handleAirportChange={handleAirportChange}
         />
       </Box>
       <Box sx={{ mb: 2 }}>
         <AirportAutocomplete
           placeholderText={"Flying To..."}
           takeOff={false}
+          handleAirportChange={handleAirportChange}
         />
       </Box>
       <Box sx={{ mb: 2, display: 'flex', gap: 2 }}>
-        <DatePicker
-          selected={searchInputs.start_date}
-          onChange={(date) => setSearchInputs(prev=>({...prev, 'start_date': date}))}
+      <DatePicker
+          selected={searchInputs.start_date ? moment(searchInputs.start_date).toDate() : null}
+          onChange={(date) => handleStartDateChange(date)}
           selectsStart
-          startDate={searchInputs.start_date}
-          endDate={searchInputs.return_date}
+          startDate={searchInputs.start_date ? moment(searchInputs.start_date).toDate() : null}
+          minDate={today} // Disable dates before today
           placeholderText="Start Date"
           customInput={
             <TextField
               fullWidth
-              variant="outlined"
               InputProps={{
-                startAdornment: <EventIcon sx={{ mr: 1 }} />,
+                startAdornment: <CalendarToday fontSize="small" sx={{ mr: 1 }} />,
+                style: { fontSize: '0.9rem' },
               }}
             />
           }
         />
         {searchInputs.trip_type === 'Round-trip' && (
           <DatePicker
-            selected={searchInputs.return_date}
-            onChange={(date) => setSearchInputs(prev=>({...prev, "return_date": date}))}
-            selectsEnd
-            startDate={searchInputs.return_date}
-            endDate={searchInputs.return_date}
-            minDate={searchInputs.start_date}
-            placeholderText="End Date"
-            customInput={
-              <TextField
-                fullWidth
-                variant="outlined"
-                InputProps={{
-                  startAdornment: <EventIcon sx={{ mr: 1 }} />,
-                }}
-              />
-            }
-          />
+          selected={searchInputs.return_date ? moment(searchInputs.return_date).toDate() : null}
+          onChange={(date) => handleReturnDateChange(date)}
+          selectsEnd
+          startDate={searchInputs.start_date ? moment(searchInputs.start_date).toDate() : null}
+          endDate={searchInputs.return_date ? moment(searchInputs.return_date).toDate() : null}
+          placeholderText="Return Date"
+          minDate={searchInputs.start_date ? moment(searchInputs.start_date).toDate() : null}
+          maxDate={oneYearFromToday} // Set max date to 1 year from today
+          customInput={
+            <TextField
+              fullWidth
+              InputProps={{
+                startAdornment: <CalendarToday fontSize="small" sx={{ mr: 1 }} />,
+                style: { fontSize: '0.9rem' },
+              }}
+            />
+          }
+        />
         )}
       </Box>
       <Box sx={{ mb: 2 }}>

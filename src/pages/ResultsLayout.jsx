@@ -90,6 +90,19 @@ const FlightResultsPage = () => {
     return objStr
   }
 
+  function getFilterObject() {
+    const objStr = {
+    "stopsFilter": stopsFilter,
+    "airlinesFilter": airlinesFilter,
+    "priceFilter": priceFilter,
+    "timeFilter": timeFilter,
+    "connectingAirportsFilter":connectingAirports,
+    "layoverDurationFilter":layoverDuration,
+    "totalDurationFilter":totalDuration
+    }
+    return objStr
+  }
+
   function handleSort(value) {
     setSortMethod(value)
     setDisplayedFlights(sortFlights(displayedFlights, value))

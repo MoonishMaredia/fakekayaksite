@@ -19,7 +19,17 @@ export const InputProvider = ({ children }) => {
     "num_checked": 0
   });
 
-  // const [searchInputs, setSearchInputs] = useState({});
+  // const [searchInputs, setSearchInputs] = useState({
+  //   "trip_type":"",
+  //   "flying_from":"",
+  //   "flying_to":"",
+  //   "start_date":null,
+  //   "return_date":null,
+  //   "num_passengers":1,
+  //   "seat_type":"Economy",
+  //   "num_carryOn": 1,
+  //   "num_checked":0
+  // });
 
   return (
     <InputContext.Provider value={{ searchInputs, setSearchInputs }}>
