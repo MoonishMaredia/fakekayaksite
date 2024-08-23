@@ -72,6 +72,23 @@ export async function makeSortRequest(userMessage) {
   }
 }
 
+export async function makeFilterRequest(userMessage, filterObj) {
+
+  const postInput = { 
+    userMessage,
+    filterObjString: JSON.stringify(filterObj)
+  };
+
+  try {
+    const data = await axios.post(process.env.REACT_APP_BACKEND_URL + "/makeFilterRequest", postInput)
+    .then(res => res.data);
+    return data.filterResponse
+  } catch (error) {
+    console.error("Error making API call:", error);
+    return {"Error": error}
+  }
+}
+
 
 export async function getFlightResults(originCode, destinationCode, tripType, startDate, returnDate) {
 

@@ -10,7 +10,6 @@ import TimesFilter from './TimesFilter';
 import ConnectingAirportsFilter from './ConnectingAirportsFilter';
 import LayoverDurationFilter from './LayoverDurationFilter';
 import TotalDurationFilter from './TotalDurationFilter';
-import initializeFilters from './initializeFilters';
 
 const FilterComponent = ({
     displayedFlights, 
@@ -29,7 +28,8 @@ const FilterComponent = ({
     layoverDuration,
     setLayoverDuration,
     totalDuration,
-    setTotalDuration}) => {
+    setTotalDuration,
+    filterOptions}) => {
 
   const {results, setResults} = useResults({});
   const {searchInputs, setSearchInputs} = useInput({});
@@ -39,13 +39,6 @@ const FilterComponent = ({
   const [isTimeFilter, setIsTimeFilter] = useState(false)
   const [isConnectingAirportsFilter, setIsConnectingAirportsFilter] = useState(false)
   const [isDurationFilter, setIsDurationFilter] = useState(false)
-
-  const filterOptions = useMemo(() => {
-    if (results.flightsTo) {
-      return initializeFilters(results.flightsTo, searchInputs);
-    }
-    return null;
-  }, [results.flightsTo, searchInputs]);
 
   function getFilterName(filterName) {
     switch(filterName) {
@@ -57,9 +50,9 @@ const FilterComponent = ({
         return isPriceFilter ? 'filter-chip filter-active' : 'filter-chip'
       case "Times":
         return isTimeFilter ? 'filter-chip filter-active' : 'filter-chip'
-      case "Connecting airports":
+      case "Layover":
         return isConnectingAirportsFilter ? 'filter-chip filter-active' : 'filter-chip'
-      case "Duration":
+      case "Total Duration":
         return isDurationFilter ? 'filter-chip filter-active' : 'filter-chip'
       default:
         return 'filter-chip'
@@ -67,15 +60,37 @@ const FilterComponent = ({
   }
 
 
+  // useEffect(() => {
+  //   if (filterOptions) {
+  //     setStopsFilter(100)
+  //     setAirlinesFilter(filterOptions.airlinesFilterOptions);
+  //     setConnectingAirports(filterOptions.connectingAirportsFilterOptions);
+  //     setPriceFilter(filterOptions.maxPrice);
+  //     setLayoverDuration([0, filterOptions.maxLayoverDuration]);
+  //     setTotalDuration([0, filterOptions.maxDuration]);
+  //     setTimeFilter({ 'departure': [0, 24], 'arrival': [0, 24] })
+  //   }
+  // }, [filterOptions]);
+
   useEffect(() => {
     if (filterOptions) {
-      setStopsFilter(100)
-      setAirlinesFilter(filterOptions.airlinesFilterOptions);
-      setConnectingAirports(filterOptions.connectingAirportsFilterOptions);
-      setPriceFilter(filterOptions.maxPrice);
-      setLayoverDuration([0, filterOptions.maxLayoverDuration]);
-      setTotalDuration([0, filterOptions.maxDuration]);
-      setTimeFilter({ 'departure': [0, 24], 'arrival': [0, 24] })
+      const {
+        stopsFilter,
+        airlinesFilterOptions,
+        connectingAirportsFilterOptions,
+        maxPrice,
+        maxLayoverDuration,
+        maxDuration,
+        timeFilter,
+      } = filterOptions;
+  
+      if (stopsFilter !== undefined) setStopsFilter(100);
+      if (airlinesFilterOptions !== undefined) setAirlinesFilter(airlinesFilterOptions);
+      if (connectingAirportsFilterOptions !== undefined) setConnectingAirports(connectingAirportsFilterOptions);
+      if (maxPrice !== undefined) setPriceFilter(maxPrice);
+      if (maxLayoverDuration !== undefined) setLayoverDuration([0, maxLayoverDuration]);
+      if (maxDuration !== undefined) setTotalDuration([0, maxDuration]);
+      if (timeFilter !== undefined) setTimeFilter({ 'departure': [0, 24], 'arrival': [0, 24] });
     }
   }, [filterOptions]);
 
@@ -125,16 +140,16 @@ const FilterComponent = ({
         setAirlines={setAirlinesFilter} />;
       case 'Times':
         return <TimesFilter timeFilter={timeFilter} setTimeFilter={setTimeFilter} />;
-      case 'Connecting airports':
+      case 'Layover':
         return (
             <div>
                 <LayoverDurationFilter 
                 duration={layoverDuration} 
                 setDuration={setLayoverDuration} 
                 maxLayoverDuration={filterOptions.maxLayoverDuration}/>
-                <ConnectingAirportsFilter airports={connectingAirports} onAirportSelect={handleAirportSelect} />
+                {/* <ConnectingAirportsFilter airports={connectingAirports} onAirportSelect={handleAirportSelect} /> */}
             </div>);
-      case 'Duration':
+      case 'Total Duration':
         return <TotalDurationFilter 
           duration={totalDuration} 
           setDuration={setTotalDuration}
@@ -265,7 +280,7 @@ const FilterComponent = ({
     <div className="filter-component">
       <div className="filter-chips">
         <Chip label="All filters" color="primary" variant="outlined" />
-        {['Stops', 'Airlines', 'Price', 'Times', 'Connecting airports', 'Duration'].map((filter) => (
+        {['Stops', 'Airlines', 'Price', 'Times', 'Layover', 'Total Duration'].map((filter) => (
           <button
             key={filter}
             ref={el => filterButtonRefs.current[filter] = el}

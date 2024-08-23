@@ -1,20 +1,8 @@
-import React, { useState, useRef, useEffect, useContext } from 'react';
-import {
-  Box,
-  Typography,
-  TextField,
-  IconButton,
-  useMediaQuery,
-  useTheme,
-} from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
+import React, { useState, useRef } from 'react';
 import ChatComponent from './ChatComponent';
-import { marked } from 'marked'; // Import marked for Markdown parsing
-import { makeGPTRequests, makeTriageRequests, getFlightResults, makeUpdateRequest, makeSortRequest} from '../../utils/api';
+import {makeTriageRequests, makeUpdateRequest, makeSortRequest, makeFilterRequest} from '../../utils/api';
 import { getLandingResultsChatHTML, getLandingResultsChatMessage, verifyAirportCode, verifyDate, verifyMinMaxType } from '../../utils/other';
-import {airportCodes} from '../../busyairportcodes'
 import { useInput } from '../InputContext'
-import { useResults } from '../ResultsContext'
 import { useMutex } from '../MutexContext'
 
 
@@ -32,15 +20,25 @@ const ChatModal = ({open, onClose,
   setTotalDuration,
   handleSort,
   setIsLoading,
-  getCompletedObject}) => {
+  getCompletedObject,
+  getFilterObject,
+  setFilterReset}) => {
 
   const {searchInputs, setSearchInputs} = useInput({});
-  const {results, setResults} = useResults({})
   const mutex = useMutex();
   const [aiMessages, setAIMessages] = useState([getLandingResultsChatMessage()])
   const [messages, setMessages] = useState([{sender: 'ai', text: getLandingResultsChatHTML()}]);
   const messagesEndRef = useRef(null);
   const [isDisabled, setIsDisabled]= useState(false)
+
+  async function clearAllFilters() {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        setFilterReset(prev => !prev); // Toggle the filterReset state
+        resolve();
+      }, 150); // Adjust the timeout as needed
+    });
+  }
 
   async function runSetFunctions(setter, arg) {
     return new Promise((resolve) => {
@@ -121,7 +119,6 @@ const ChatModal = ({open, onClose,
     });
   }
 
-
   async function runUpdateSubFunctions(setter1, arg1, setter2 = null, arg2 = null, multipleArgs = false) {
     if (multipleArgs) {
       const message = verifyAirportCode(setter1, arg1, searchInputs.flying_from, searchInputs.flying_to, setter2, arg2, multipleArgs = true);
@@ -193,7 +190,6 @@ const ChatModal = ({open, onClose,
     return {"msg":200}
 }
 
-
   function formatFilterResponse(filterResponse) {
 
     const cleanedResponse = filterResponse.slice(1, -1).trim();
@@ -213,9 +209,9 @@ const ChatModal = ({open, onClose,
     return filters
   }
 
-
   async function runFilterFunction(userMessage) {
-    const filterResponse = "[stops, 0, airlines, {'United':true, 'Frontier':false, 'American':false, 'Spirit':false, 'Multiple Airlines': false, 'Delta':false, 'Alaska':false, 'JetBlue':false}, price, 200, departureTime, [7,20], arrivalTime, [1,23], totalDuration, [0,5], connectingAirports, ['DFW']]"
+    // const filterResponse = "[stops, 0, airlines, {'United':true, 'Frontier':false, 'American':false, 'Spirit':false, 'Multiple Airlines': false, 'Delta':false, 'Alaska':false, 'JetBlue':false}, price, 200, departureTime, [7,20], arrivalTime, [1,23], totalDuration, [0,5], connectingAirports, ['DFW']]"
+    const filterResponse = await makeFilterRequest(userMessage, getFilterObject())
     const finalFilters = formatFilterResponse(filterResponse);
     let returnMsg = null
     const filterPromises = Object.entries(finalFilters).map(([key, value]) => 
@@ -225,8 +221,11 @@ const ChatModal = ({open, onClose,
   }
 
   async function updateFilter(filterItem, filterValue) {
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
       switch (filterItem) {
+        case "CLEARFILTERS":
+          await clearAllFilters();
+          resolve({"msg":200})
         case "stops":
           setStopsFilter(parseInt(filterValue));
           resolve({ "msg": 200 });

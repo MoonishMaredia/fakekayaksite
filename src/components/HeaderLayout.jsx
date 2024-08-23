@@ -6,7 +6,6 @@ import {
   IconButton,
 } from '@mui/material';
 import FlightIcon from '@mui/icons-material/Flight';
-import MenuIcon from '@mui/icons-material/Menu';
 import ChatIcon from '@mui/icons-material/Chat';
 
 const HeaderLayout = ({ onChatOpen }) => {

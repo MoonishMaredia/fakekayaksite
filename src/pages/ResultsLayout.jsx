@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import {getFlightScalars, getFlightResults} from '../utils/api.js'
 import ChatModal from '../components/chat/ChatModalResults.jsx'
 import moment from 'moment';
+import initializeFilters from '../components/filters/initializeFilters';
 
 const seatScalar = {
   Economy: 1,
@@ -70,6 +71,8 @@ const FlightResultsPage = () => {
   const [layoverDuration, setLayoverDuration] = useState([0, 0]);
   const [totalDuration, setTotalDuration] = useState([0, 0]);
 
+  const [filterReset, setFilterReset] = useState(false)
+
   const [isChatOpen, setIsChatOpen] = useState(false);
   const handleChatOpen = () => setIsChatOpen(true);
   const handleChatClose = () => setIsChatOpen(false);
@@ -92,16 +95,27 @@ const FlightResultsPage = () => {
 
   function getFilterObject() {
     const objStr = {
-    "stopsFilter": stopsFilter,
-    "airlinesFilter": airlinesFilter,
-    "priceFilter": priceFilter,
-    "timeFilter": timeFilter,
-    "connectingAirportsFilter":connectingAirports,
-    "layoverDurationFilter":layoverDuration,
-    "totalDurationFilter":totalDuration
+    "stops": stopsFilter,
+    "airlines": airlinesFilter,
+    "price": priceFilter,
+    "departureTime": timeFilter.departure,
+    "arrivalTime": timeFilter.arrival,
+    "connectingAirports":connectingAirports,
+    "layoverDuration":layoverDuration,
+    "totalDuration":totalDuration
     }
     return objStr
   }
+
+  const filterOptions = useMemo(() => {
+    
+    if (results.flightsTo && !isReturnFlightPage) {
+      return initializeFilters(results.flightsTo, results.scalarsTo, searchInputs);
+    } else if(results.flightsReturn && isReturnFlightPage) {
+      return initializeFilters(results.flightsReturn, results.scalarsReturn, searchInputs);
+    }
+    return null;
+  }, [searchInputs, isReturnFlightPage, filterReset]);
 
   function handleSort(value) {
     setSortMethod(value)
@@ -352,7 +366,8 @@ const FlightResultsPage = () => {
           layoverDuration = {layoverDuration}
           setLayoverDuration = {setLayoverDuration}
           totalDuration = {totalDuration}
-          setTotalDuration = {setTotalDuration}/>
+          setTotalDuration = {setTotalDuration}
+          filterOptions={filterOptions}/>
         <Box sx={{ display: 'flex', flexDirection: 'column', maxWidth: isMobile ? '100%' : '82%', gap: 2 }}>
         {isReturnFlightPage &&
             <SelectedFlightPill
@@ -406,7 +421,8 @@ const FlightResultsPage = () => {
       setTotalDuration = {setTotalDuration}
       handleSort={handleSort}
       setIsLoading={setIsLoading}
-      getCompletedObject={getCompletedObject}/>
+      getCompletedObject={getCompletedObject}
+      getFilterObject={getFilterObject}/>
     </Box>
   );
 };

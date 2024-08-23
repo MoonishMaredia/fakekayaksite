@@ -1,6 +1,6 @@
 import { airportCodes } from '../../busyairportcodes.js';
 
-export const initializeFilters = (results, searchInputs) => {
+export const initializeFilters = (results, scalars, searchInputs) => {
   const allAirlines = Array.from(new Set(results.map(flight => flight.airline)));
 
   const airlinesFilterOptions = allAirlines.reduce((acc, airline) => {
@@ -64,13 +64,11 @@ export const initializeFilters = (results, searchInputs) => {
           return checkedFees['American'].slice(0, numBags).reduce((a, b) => a + b, 0);
         }
     } 
-  
 
-  
-  const maxPrice = results.reduce((acc, curr) => {
-    const checkedBagFees = getCheckedFees(curr.airline, searchInputs['num_checked'] * searchInputs['num_passengers'])
-    const carryOnBagFees = getCarryFees(curr.airline, searchInputs['num_carryOn'] * searchInputs['num_passengers'])
-    const tripCost = Math.ceil(curr.trip_cost * searchInputs['num_passengers'] * seatScalar[searchInputs.seat_type]) + carryOnBagFees + checkedBagFees
+    const maxPrice = results.reduce((acc, curr, index) => {
+    const checkedBagFees = getCheckedFees(curr.airline, searchInputs['num_checked'] * searchInputs['num_passengers']);
+    const carryOnBagFees = getCarryFees(curr.airline, searchInputs['num_carryOn'] * searchInputs['num_passengers']);
+    const tripCost = Math.ceil(curr.trip_cost * searchInputs['num_passengers'] * seatScalar[searchInputs.seat_type] * scalars[index]) + carryOnBagFees + checkedBagFees;
     return tripCost > acc ? tripCost : acc;
   }, 0);
 
