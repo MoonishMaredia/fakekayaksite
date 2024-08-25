@@ -6,14 +6,17 @@ import {
     IconButton,
     useMediaQuery,
     useTheme,
+    Popover,
+    Tooltip,
+    Button
   } from '@mui/material';
   import CloseIcon from '@mui/icons-material/Close';
-
 
 export default function ChatComponent({open, onClose, messages, isDisabled, sendMessage}) {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const messagesEndRef = useRef(null);
+    const [anchorEl, setAnchorEl] = useState(null);
 
     const drawerStyle = {
         width: isMobile ? '100%' : '22%',
@@ -52,13 +55,73 @@ export default function ChatComponent({open, onClose, messages, isDisabled, send
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, [messages]);
 
+      const handleHintClick = (event) => {
+        if (isMobile) {
+          setAnchorEl(event.currentTarget);
+        }
+      };
+
+      const handleHintClose = () => {
+        setAnchorEl(null);
+      };
+    
+      const hintsOpen = Boolean(anchorEl);
+      const id = hintsOpen ? 'hint-popover' : undefined;
+    
+      const hintContent = (
+        <Typography sx={{ p: 1 }}>
+          Here are some helpful hints for using the AI chat:
+          <ul>
+            <li>Use the action keywords: update, filter, sort whenever possible</li>
+            <li>You can ask to clear all existing filters</li>
+            <li>Be specific about about the flight you want to book</li>
+
+          </ul>
+        </Typography>
+      );    
+
     return (
-            <Box sx={drawerStyle}>
+              <Box sx={drawerStyle}>
               <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '20px', boxSizing: 'border-box' }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                  <Typography variant="h6" component="h2">
-                    Book with AI
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Typography variant="h6" component="h2" sx={{ mr: 1 }}>
+                      Chat with AI
+                    </Typography>
+                    {isMobile ? (
+                    <Button
+                      aria-describedby={id}
+                      onClick={handleHintClick}
+                      sx={{
+                        color: 'green',
+                        textTransform: 'none',
+                        minWidth: 'auto',
+                        padding: '2px 8px',
+                        fontSize: '0.875rem',
+                        border: '1px solid green',
+                        marginLeft:'10px'
+                      }}
+                    >
+                      Hints
+                    </Button>
+                  ) : (
+                    <Tooltip title={hintContent} arrow>
+                      <Button
+                        sx={{
+                          color: 'green',
+                          textTransform: 'none',
+                          minWidth: 'auto',
+                          padding: '2px 8px',
+                          fontSize: '0.875rem',
+                          border: '1px solid green',
+                          marginLeft:'15px'
+                        }}
+                      >
+                        Hints
+                      </Button>
+                    </Tooltip>
+                  )}
+                  </Box>
                   <IconButton onClick={onClose}>
                     <CloseIcon />
                   </IconButton>
@@ -91,6 +154,22 @@ export default function ChatComponent({open, onClose, messages, isDisabled, send
                   <div ref={messagesEndRef} />
                 </Box>
               </Box>
+              <Popover
+                id={id}
+                open={hintsOpen}
+                anchorEl={anchorEl}
+                onClose={handleHintClose}
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'left',
+                }}
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'left',
+                }}
+              >
+                {hintContent}
+              </Popover>
             </Box>
           );
-}
+      }

@@ -12,7 +12,6 @@ const ChatModal = ({open, onClose,
   handleStartDateChange,
   handleReturnDateChange,
   setAirlinesFilter,
-  handleAirportsFilterSelection,
   setPriceFilter,
   setStopsFilter,
   setTimeFilter,
@@ -22,7 +21,7 @@ const ChatModal = ({open, onClose,
   setIsLoading,
   getCompletedObject,
   getFilterObject,
-  setFilterReset}) => {
+  resetFilters}) => {
 
   const {searchInputs, setSearchInputs} = useInput({});
   const mutex = useMutex();
@@ -34,7 +33,7 @@ const ChatModal = ({open, onClose,
   async function clearAllFilters() {
     return new Promise((resolve) => {
       setTimeout(() => {
-        setFilterReset(prev => !prev); // Toggle the filterReset state
+        resetFilters(); // Toggle the filterReset state
         resolve();
       }, 150); // Adjust the timeout as needed
     });
@@ -191,34 +190,47 @@ const ChatModal = ({open, onClose,
 }
 
   function formatFilterResponse(filterResponse) {
-
     const cleanedResponse = filterResponse.slice(1, -1).trim();
     const parts = cleanedResponse.split(/,(?![^{\[]*[}\]])/).map(part => part.trim());
     const filters = {};
 
     for (let i = 0; i < parts.length; i += 2) {
-      const filterName = parts[i];
-      let filterValue = parts[i + 1];
-      if (filterValue.startsWith('{') && filterValue.endsWith('}')) {
-        filterValue = JSON.parse(filterValue.replace(/'/g, '"')); // Parse object
-      } else if (filterValue.startsWith('[') && filterValue.endsWith(']')) {
-        filterValue = JSON.parse(filterValue.replace(/'/g, '"')); // Parse array
-      }
-      filters[filterName] = filterValue;
+        const filterName = parts[i];
+        let filterValue = parts[i + 1];
+
+        // Remove surrounding quotes if present
+        if (filterValue.startsWith("'") && filterValue.endsWith("'")) {
+            filterValue = filterValue.slice(1, -1);
+        }
+
+        if (filterValue.startsWith('{') && filterValue.endsWith('}')) {
+            // Parse object
+            filterValue = JSON.parse(filterValue.replace(/(\w+):/g, '"$1":').replace(/'/g, '"'));
+        } else if (filterValue.startsWith('[') && filterValue.endsWith(']')) {
+            // Parse array
+            filterValue = JSON.parse(filterValue.replace(/'/g, '"'));
+        } else if (!isNaN(filterValue)) {
+            // Parse number
+            filterValue = Number(filterValue);
+        }
+
+        filters[filterName] = filterValue;
     }
-    return filters
+
+    return filters;
   }
 
-  async function runFilterFunction(userMessage) {
-    // const filterResponse = "[stops, 0, airlines, {'United':true, 'Frontier':false, 'American':false, 'Spirit':false, 'Multiple Airlines': false, 'Delta':false, 'Alaska':false, 'JetBlue':false}, price, 200, departureTime, [7,20], arrivalTime, [1,23], totalDuration, [0,5], connectingAirports, ['DFW']]"
-    const filterResponse = await makeFilterRequest(userMessage, getFilterObject())
-    const finalFilters = formatFilterResponse(filterResponse);
-    let returnMsg = null
-    const filterPromises = Object.entries(finalFilters).map(([key, value]) => 
-      updateFilter(key, value)
-    );
-    await Promise.all(filterPromises);
-  }
+    async function runFilterFunction(userMessage) {
+      const filterResponse = await makeFilterRequest(userMessage, getFilterObject());
+      console.log(filterResponse);
+      const finalFilters = formatFilterResponse(filterResponse);
+      console.log(finalFilters);
+    
+      const filterPromises = Object.entries(finalFilters).map(([key, value]) =>
+        updateFilter(key, value)
+      );
+      await Promise.all(filterPromises);
+    }
 
   async function updateFilter(filterItem, filterValue) {
     return new Promise(async (resolve) => {
@@ -244,10 +256,6 @@ const ChatModal = ({open, onClose,
           break;
         case "arrivalTime":
           setTimeFilter(prev => ({...prev, "arrival": filterValue.reduce((acc, curr) => [...acc, parseInt(curr)], [])}));
-          resolve({ "msg": 200 });
-          break;
-        case "connectingAirports":
-          handleAirportsFilterSelection(filterValue);
           resolve({ "msg": 200 });
           break;
         case "layoverDuration":

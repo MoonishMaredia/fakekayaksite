@@ -64,14 +64,18 @@ const FlightResultsPage = () => {
   const [returnFlight, setReturnFlight] = useState({})
 
   const [airlinesFilter, setAirlinesFilter] = useState({});
-  const [connectingAirports, setConnectingAirports] = useState([]);
   const [priceFilter, setPriceFilter] = useState(0);
   const [stopsFilter, setStopsFilter] = useState(100);
   const [timeFilter, setTimeFilter] = useState({ 'departure': [0, 24], 'arrival': [0, 24] });
-  const [layoverDuration, setLayoverDuration] = useState([0, 0]);
+  const [layoverDuration, setLayoverDuration] = useState([0,0]);
   const [totalDuration, setTotalDuration] = useState([0, 0]);
 
-  const [filterReset, setFilterReset] = useState(false)
+  const [isStopsFilter, setIsStopsFilter] = useState(false)
+  const [isAirlinesFilter, setIsAirlinesFilter] = useState(false)
+  const [isPriceFilter, setIsPriceFilter] = useState(false)
+  const [isTimeFilter, setIsTimeFilter] = useState(false)
+  const [isConnectingAirportsFilter, setIsConnectingAirportsFilter] = useState(false)
+  const [isDurationFilter, setIsDurationFilter] = useState(false)
 
   const [isChatOpen, setIsChatOpen] = useState(false);
   const handleChatOpen = () => setIsChatOpen(true);
@@ -100,7 +104,6 @@ const FlightResultsPage = () => {
     "price": priceFilter,
     "departureTime": timeFilter.departure,
     "arrivalTime": timeFilter.arrival,
-    "connectingAirports":connectingAirports,
     "layoverDuration":layoverDuration,
     "totalDuration":totalDuration
     }
@@ -115,23 +118,21 @@ const FlightResultsPage = () => {
       return initializeFilters(results.flightsReturn, results.scalarsReturn, searchInputs);
     }
     return null;
-  }, [searchInputs, isReturnFlightPage, filterReset]);
+  }, [searchInputs, isReturnFlightPage]);
 
   function handleSort(value) {
     setSortMethod(value)
     setDisplayedFlights(sortFlights(displayedFlights, value))
   }
 
-  const handleAirportsFilterSelection = (airportIds) => {
-    setConnectingAirports((prevAirports) => {
-      return prevAirports.map(airport=> {
-        if(airportIds.includes(airport.id)) {
-          airport.checked=true
-        }
-        return airport
-      })
-    });
-  };
+  async function resetFilters() {
+    setIsStopsFilter(false)
+    setAirlinesFilter(false)
+    setIsPriceFilter(false)
+    setIsTimeFilter(false)
+    setIsConnectingAirportsFilter(false)
+    setIsDurationFilter(false)
+  }
 
   async function handleSingleAirportChange(takeOff, newAirport) {
     let resultsData = {}
@@ -349,14 +350,13 @@ const FlightResultsPage = () => {
           handleReturnDateChange={handleReturnDateChange}
           handleAirportChange={handleSingleAirportChange}
         />
+
         <FilterComponent 
           displayedFlights={displayedFlights} 
           setDisplayedFlights={setDisplayedFlights} 
           isReturnFlightPage={isReturnFlightPage}
           airlinesFilter = {airlinesFilter}
           setAirlinesFilter = {setAirlinesFilter}
-          connectingAirports = {connectingAirports}
-          setConnectingAirports = {setConnectingAirports}
           priceFilter = {priceFilter}
           setPriceFilter = {setPriceFilter}
           stopsFilter = {stopsFilter}
@@ -367,7 +367,19 @@ const FlightResultsPage = () => {
           setLayoverDuration = {setLayoverDuration}
           totalDuration = {totalDuration}
           setTotalDuration = {setTotalDuration}
-          filterOptions={filterOptions}/>
+          filterOptions={filterOptions}
+          isStopsFilter={isStopsFilter}
+          setIsStopsFilter={setIsStopsFilter}
+          isAirlinesFilter={isAirlinesFilter}
+          setIsAirlinesFilter={setIsAirlinesFilter}
+          isPriceFilter={isPriceFilter}
+          setIsPriceFilter={setIsPriceFilter}
+          isTimeFilter={isTimeFilter}
+          setIsTimeFilter={setIsTimeFilter}
+          isConnectingAirportsFilter={isConnectingAirportsFilter}
+          setIsConnectingAirportsFilter={setIsConnectingAirportsFilter}
+          isDurationFilter={isDurationFilter}
+          setIsDurationFilter={setIsDurationFilter}/>
         <Box sx={{ display: 'flex', flexDirection: 'column', maxWidth: isMobile ? '100%' : '82%', gap: 2 }}>
         {isReturnFlightPage &&
             <SelectedFlightPill
@@ -413,7 +425,6 @@ const FlightResultsPage = () => {
       handleStartDateChange={handleStartDateChange}
       handleReturnDateChange={handleReturnDateChange}
       setAirlinesFilter = {setAirlinesFilter}
-      handleAirportsFilterSelection = {handleAirportsFilterSelection}
       setPriceFilter = {setPriceFilter}
       setStopsFilter = {setStopsFilter}
       setTimeFilter = {setTimeFilter}
@@ -422,7 +433,8 @@ const FlightResultsPage = () => {
       handleSort={handleSort}
       setIsLoading={setIsLoading}
       getCompletedObject={getCompletedObject}
-      getFilterObject={getFilterObject}/>
+      getFilterObject={getFilterObject}
+      resetFilters={resetFilters}/>
     </Box>
   );
 };

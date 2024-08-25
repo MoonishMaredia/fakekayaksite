@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -24,6 +24,10 @@ const FlightCard = ({ isMobile, flightData, isReturnFlightPage, handleFlightSele
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
+
+  useEffect(()=> { 
+    setExpanded(false)
+  }, [isReturnFlightPage])
 
   const formatTime = (dateString) => {
     const date = new Date(dateString);

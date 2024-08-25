@@ -76,7 +76,7 @@ export async function makeFilterRequest(userMessage, filterObj) {
 
   const postInput = { 
     userMessage,
-    filterObjString: JSON.stringify(filterObj)
+    currentFilters: JSON.stringify(filterObj)
   };
 
   try {

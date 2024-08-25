@@ -7,7 +7,6 @@ import PriceFilter from './PriceFilter';
 import StopsFilter from './StopsFilter';
 import AirlinesFilter from './AirlinesFilter';
 import TimesFilter from './TimesFilter';
-import ConnectingAirportsFilter from './ConnectingAirportsFilter';
 import LayoverDurationFilter from './LayoverDurationFilter';
 import TotalDurationFilter from './TotalDurationFilter';
 
@@ -17,8 +16,6 @@ const FilterComponent = ({
     isReturnFlightPage,
     airlinesFilter,
     setAirlinesFilter,
-    connectingAirports,
-    setConnectingAirports,
     priceFilter,
     setPriceFilter,
     stopsFilter,
@@ -29,16 +26,23 @@ const FilterComponent = ({
     setLayoverDuration,
     totalDuration,
     setTotalDuration,
-    filterOptions}) => {
+    filterOptions,
+    isStopsFilter,
+    setIsStopsFilter,
+    isAirlinesFilter,
+    setIsAirlinesFilter,
+    isPriceFilter,
+    setIsPriceFilter,
+    isTimeFilter,
+    setIsTimeFilter,
+    isConnectingAirportsFilter,
+    setIsConnectingAirportsFilter,
+    isDurationFilter,
+    setIsDurationFilter}) => {
 
   const {results, setResults} = useResults({});
   const {searchInputs, setSearchInputs} = useInput({});
-  const [isStopsFilter, setIsStopsFilter] = useState(false)
-  const [isAirlinesFilter, setIsAirlinesFilter] = useState(false)
-  const [isPriceFilter, setIsPriceFilter] = useState(false)
-  const [isTimeFilter, setIsTimeFilter] = useState(false)
-  const [isConnectingAirportsFilter, setIsConnectingAirportsFilter] = useState(false)
-  const [isDurationFilter, setIsDurationFilter] = useState(false)
+
 
   function getFilterName(filterName) {
     switch(filterName) {
@@ -59,51 +63,23 @@ const FilterComponent = ({
     }
   }
 
-
-  // useEffect(() => {
-  //   if (filterOptions) {
-  //     setStopsFilter(100)
-  //     setAirlinesFilter(filterOptions.airlinesFilterOptions);
-  //     setConnectingAirports(filterOptions.connectingAirportsFilterOptions);
-  //     setPriceFilter(filterOptions.maxPrice);
-  //     setLayoverDuration([0, filterOptions.maxLayoverDuration]);
-  //     setTotalDuration([0, filterOptions.maxDuration]);
-  //     setTimeFilter({ 'departure': [0, 24], 'arrival': [0, 24] })
-  //   }
-  // }, [filterOptions]);
-
   useEffect(() => {
     if (filterOptions) {
       const {
-        stopsFilter,
         airlinesFilterOptions,
-        connectingAirportsFilterOptions,
         maxPrice,
         maxLayoverDuration,
         maxDuration,
-        timeFilter,
       } = filterOptions;
   
-      if (stopsFilter !== undefined) setStopsFilter(100);
-      if (airlinesFilterOptions !== undefined) setAirlinesFilter(airlinesFilterOptions);
-      if (connectingAirportsFilterOptions !== undefined) setConnectingAirports(connectingAirportsFilterOptions);
-      if (maxPrice !== undefined) setPriceFilter(maxPrice);
-      if (maxLayoverDuration !== undefined) setLayoverDuration([0, maxLayoverDuration]);
-      if (maxDuration !== undefined) setTotalDuration([0, maxDuration]);
-      if (timeFilter !== undefined) setTimeFilter({ 'departure': [0, 24], 'arrival': [0, 24] });
+      if (stopsFilter !== undefined) setStopsFilter(isStopsFilter ? stopsFilter : 100);
+      if (airlinesFilterOptions !== undefined) setAirlinesFilter(isAirlinesFilter ? airlinesFilter : airlinesFilterOptions);
+      if (maxPrice !== undefined) setPriceFilter(isPriceFilter ? priceFilter : maxPrice);
+      if (maxLayoverDuration !== undefined) setLayoverDuration(isConnectingAirportsFilter ? layoverDuration : [0, maxLayoverDuration]);
+      if (maxDuration !== undefined) setTotalDuration(isDurationFilter ? totalDuration : [0, maxDuration]);
+      if (timeFilter !== undefined) setTimeFilter(isTimeFilter ? timeFilter : { 'departure': [0, 24], 'arrival': [0, 24] });
     }
-  }, [filterOptions]);
-
-  const handleAirportSelect = (airportId) => {
-    setConnectingAirports((prevAirports) => {
-      return prevAirports.map(airport=> {
-        if(airport.id===airportId) {
-          airport.checked=!airport.checked
-        }
-        return airport
-      })
-    });
-  };
+  }, [filterOptions, isStopsFilter, isAirlinesFilter, isPriceFilter, isConnectingAirportsFilter, isDurationFilter, isTimeFilter]);
 
   const [openFilter, setOpenFilter] = useState(null);
 
@@ -142,13 +118,13 @@ const FilterComponent = ({
         return <TimesFilter timeFilter={timeFilter} setTimeFilter={setTimeFilter} />;
       case 'Layover':
         return (
-            <div>
-                <LayoverDurationFilter 
-                duration={layoverDuration} 
-                setDuration={setLayoverDuration} 
-                maxLayoverDuration={filterOptions.maxLayoverDuration}/>
-                {/* <ConnectingAirportsFilter airports={connectingAirports} onAirportSelect={handleAirportSelect} /> */}
-            </div>);
+          <div>
+              <LayoverDurationFilter 
+              duration={layoverDuration} 
+              setDuration={setLayoverDuration} 
+              maxLayoverDuration={filterOptions.maxLayoverDuration}/>
+          </div>
+          );
       case 'Total Duration':
         return <TotalDurationFilter 
           duration={totalDuration} 
@@ -246,7 +222,6 @@ const FilterComponent = ({
       setIsDurationFilter(false)
     }
     
-    let isLayoverDurationFilter = false
     if (layoverDuration[0] !== 0 || layoverDuration[1] !== filterOptions.maxLayoverDuration) {
       const [lowerBound, upperBound] = layoverDuration;
       newFlights = newFlights.filter(flight => 
@@ -255,26 +230,14 @@ const FilterComponent = ({
           return durationInHours >= lowerBound && durationInHours <= upperBound;
         })
       );
-      let isLayoverDurationFilter = true
+      setIsConnectingAirportsFilter(true)
+    } else {
+      setIsConnectingAirportsFilter(false)
     }
-
-    let areConnectedAirportsFilter = false
-    const areAllConnectionsSelected = connectingAirports.every(airport => airport.checked);
-    if (!areAllConnectionsSelected) {
-      const unselectedConnections = connectingAirports
-        .filter(airport => !airport.checked)
-        .map(airport => airport.id);
-      newFlights = newFlights.filter(flight => 
-        flight.layover === null || !flight.layover.some(layover => unselectedConnections.includes(layover.id))
-      );
-      areConnectedAirportsFilter = true
-    }
-
-    setIsConnectingAirportsFilter(isLayoverDurationFilter || areConnectedAirportsFilter)
 
     setDisplayedFlights(newFlights)
 
-  }, [airlinesFilter, stopsFilter, priceFilter, timeFilter, totalDuration, connectingAirports, layoverDuration])  
+  }, [airlinesFilter, stopsFilter, priceFilter, timeFilter, totalDuration, layoverDuration, results])  
 
   return (
     <div className="filter-component">

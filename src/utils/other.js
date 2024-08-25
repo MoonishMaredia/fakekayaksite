@@ -12,8 +12,8 @@ export function getLandingChatMessage() {
 export function getLandingResultsChatMessage() {
     const message = `Hello! I’m here to help you finalize your booking. I can assist you in 3 ways:<br>
     1) Help update your flight request details (e.g. update my return date to Oct 1, 2024)
-    2) Sort your flight results (e.g. sort results based on total travel time)
-    3) Filter your flight resuls (e.g. only show non-stop flights)
+    2) Filter your flight resuls (e.g. only show non-stop flights)
+    3) Sort your flight results (e.g. sort results based on total travel time)
     You can also ask me to perform a combination of these actions (e.g. update my return airport to JFK and only show non-stop flights).`
     
     return message

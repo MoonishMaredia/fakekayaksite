@@ -8,22 +8,6 @@ export const initializeFilters = (results, scalars, searchInputs) => {
     return acc;
   }, {});
 
-  const allConnectingAirports = Array.from(new Set(
-    results
-      .filter(flight => flight.layover !== null)
-      .flatMap(flight => flight.layover.map(layover => layover.id))
-  ));
-
-  const connectingAirportsFilterOptions = allConnectingAirports.reduce((acc, id) => {
-    const add = {
-      'id': id,
-      'name': airportCodes[id] ? airportCodes[id].name : "Small Airport",
-      'checked': true
-    };
-    acc.push(add);
-    return acc;
-  }, []);
-
   // Carry-on fees data
   const seatScalar = {
     Economy: 1,
@@ -83,10 +67,7 @@ export const initializeFilters = (results, scalars, searchInputs) => {
   }, 0);
 
   return {
-    allAirlines,
     airlinesFilterOptions,
-    allConnectingAirports,
-    connectingAirportsFilterOptions,
     maxPrice,
     maxLayoverDuration,
     maxDuration
