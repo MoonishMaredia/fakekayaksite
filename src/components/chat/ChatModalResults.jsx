@@ -106,7 +106,6 @@ const ChatModal = ({open, onClose,
             setSearchInputs(prev => ({ ...prev, 'num_checked': parseInt(checkedRes.arg) }));
             resolve({ "msg": 200 });
           } else {
-            console.log(checkedRes)
             resolve({ "msg": 400, "error": checkedRes.error });
           }
           break;
