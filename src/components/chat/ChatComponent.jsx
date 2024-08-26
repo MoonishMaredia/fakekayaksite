@@ -88,7 +88,7 @@ export default function ChatComponent({open, onClose, messages, isDisabled, send
                     <Typography variant="h6" component="h2" sx={{ mr: 1 }}>
                       Chat with AI
                     </Typography>
-                    {isMobile ? (
+                    {/* {isMobile ? (
                     <Button
                       aria-describedby={id}
                       onClick={handleHintClick}
@@ -120,7 +120,7 @@ export default function ChatComponent({open, onClose, messages, isDisabled, send
                         Hints
                       </Button>
                     </Tooltip>
-                  )}
+                  )} */}
                   </Box>
                   <IconButton onClick={onClose}>
                     <CloseIcon />
