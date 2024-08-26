@@ -88,39 +88,6 @@ export default function ChatComponent({open, onClose, messages, isDisabled, send
                     <Typography variant="h6" component="h2" sx={{ mr: 1 }}>
                       Chat with AI
                     </Typography>
-                    {/* {isMobile ? (
-                    <Button
-                      aria-describedby={id}
-                      onClick={handleHintClick}
-                      sx={{
-                        color: 'green',
-                        textTransform: 'none',
-                        minWidth: 'auto',
-                        padding: '2px 8px',
-                        fontSize: '0.875rem',
-                        border: '1px solid green',
-                        marginLeft:'10px'
-                      }}
-                    >
-                      Hints
-                    </Button>
-                  ) : (
-                    <Tooltip title={hintContent} arrow>
-                      <Button
-                        sx={{
-                          color: 'green',
-                          textTransform: 'none',
-                          minWidth: 'auto',
-                          padding: '2px 8px',
-                          fontSize: '0.875rem',
-                          border: '1px solid green',
-                          marginLeft:'15px'
-                        }}
-                      >
-                        Hints
-                      </Button>
-                    </Tooltip>
-                  )} */}
                   </Box>
                   <IconButton onClick={onClose}>
                     <CloseIcon />
