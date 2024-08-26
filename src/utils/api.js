@@ -10,6 +10,8 @@ export async function makeGPTRequests(userMessage, prevAIMessage, inputObjString
     inputObjString: JSON.stringify(inputObjString)
   };
 
+  console.log(inputObjString)
+
   try {
     const data = await axios.post(process.env.REACT_APP_BACKEND_URL + "/makeGPTRequests", postInput)
     .then(res => res.data);

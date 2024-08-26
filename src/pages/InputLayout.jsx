@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { getFlightResults } from '../utils/api';
 import {useInput} from '../components/InputContext.js'
 import {useResults} from '../components/ResultsContext.js'
+import moment from 'moment';
 
 const InputLayout = () => {
 
@@ -28,6 +29,46 @@ const InputLayout = () => {
     "num_carryOn":"",
     "num_checked":""
   })
+
+
+  // Function to format date to YYYY-MM-DD using moment
+  const formatDate = (date) => {
+    return moment(date).format('YYYY-MM-DD');
+  };
+
+  function addDays(date, days) {
+    let result = new Date(date);
+    result.setDate(result.getDate() + days);
+    return result;
+  }
+
+  function handleStartDateChange(date, isString=false) {
+    let dateStr = ""
+    let newDate = null
+    if(isString) {
+      dateStr = date
+      newDate = new Date(dateStr)
+    } else {
+      dateStr = formatDate(date)
+      newDate = date
+    }
+    setSearchInputs(prev => ({ ...prev, start_date: dateStr }));
+    if(searchInputs.return_date) {
+      if(newDate > new Date(searchInputs.return_date)) {
+        handleReturnDateChange(addDays(date, 7))
+      }
+    }
+  };
+
+  function handleReturnDateChange(date, isString=false) {
+    let dateStr = ""
+    if(isString) {
+      dateStr = date
+    } else {
+      dateStr = formatDate(date)
+    }
+    setSearchInputs(prev => ({ ...prev, return_date: dateStr }));
+  };
 
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -66,7 +107,9 @@ const InputLayout = () => {
           {loading && <LoadingIndicator />}
           <Container maxWidth="sm" sx={{ mt: 4 }}>
           <SearchForm 
-            handleSubmit={handleSubmit}/>
+            handleSubmit={handleSubmit}
+            handleStartDateChange={handleStartDateChange}
+            handleReturnDateChange={handleReturnDateChange}/>
           </Container>
         </Box>
       </Box>
@@ -78,6 +121,8 @@ const InputLayout = () => {
       getCompletedObject={getCompletedObject}
       fieldErrors={fieldErrors}
       setFieldErrors={setFieldErrors}
+      handleStartDateChange={handleStartDateChange}
+      handleReturnDateChange={handleReturnDateChange}
       />
     </Box>
   );

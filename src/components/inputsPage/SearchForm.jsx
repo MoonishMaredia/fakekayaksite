@@ -22,7 +22,9 @@ import {useInput} from '../InputContext.js'
 import moment from 'moment';
 
 const SearchForm = ({
-    handleSubmit
+    handleSubmit,
+    handleStartDateChange,
+    handleReturnDateChange
   }) => {
 
   const {searchInputs, setSearchInputs} = useInput({})
@@ -52,45 +54,6 @@ const SearchForm = ({
     setSearchInputs(prev => ({...prev, [takeOff ? 'flying_from' : 'flying_to']: newAirport}))
   }
 
-  // Function to format date to YYYY-MM-DD using moment
-  const formatDate = (date) => {
-    return moment(date).format('YYYY-MM-DD');
-  };
-
-  function addDays(date, days) {
-    let result = new Date(date);
-    result.setDate(result.getDate() + days);
-    return result;
-  }
-
-  function handleStartDateChange(date, isString=false) {
-    let dateStr = ""
-    let newDate = null
-    if(isString) {
-      dateStr = date
-      newDate = new Date(dateStr)
-    } else {
-      dateStr = formatDate(date)
-      newDate = date
-    }
-    setSearchInputs(prev => ({ ...prev, start_date: dateStr }));
-    if(searchInputs.return_date) {
-      if(newDate > new Date(searchInputs.return_date)) {
-        handleReturnDateChange(addDays(date, 7))
-      }
-    }
-  };
-
-  function handleReturnDateChange(date, isString=false) {
-    let dateStr = ""
-    if(isString) {
-      dateStr = date
-    } else {
-      dateStr = formatDate(date)
-    }
-    setSearchInputs(prev => ({ ...prev, return_date: dateStr }));
-  };
-  
 
   const isFormValid = () => {
     // Check for empty strings, null or undefined

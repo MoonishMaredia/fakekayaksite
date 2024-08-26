@@ -15,7 +15,14 @@ import { getLandingChatHTML, getLandingChatMessage } from '../../utils/other';
 import {airportCodes} from '../../busyairportcodes'
 import { useInput } from '../InputContext'
 
-const ChatModal = ({open, onClose, handleSubmit, getCompletedObject, fieldErrors, setFieldErrors}) => {
+const ChatModal = ({open, 
+  onClose, 
+  handleSubmit, 
+  getCompletedObject, 
+  fieldErrors, 
+  setFieldErrors, 
+  handleStartDateChange,
+  handleReturnDateChange}) => {
 
   const {searchInputs, setSearchInputs} = useInput({});
   const [aiMessages, setAIMessages] = useState([getLandingChatMessage()])
@@ -123,7 +130,8 @@ const ChatModal = ({open, onClose, handleSubmit, getCompletedObject, fieldErrors
     } else if(setter==="setStartDate") {
       const res = verifyDate("start_date", arg)
       if(res.msg===200) {
-        setSearchInputs(prev=>({...prev, 'start_date': res.arg}))
+        // setSearchInputs(prev=>({...prev, 'start_date': res.arg}))
+        handleStartDateChange(res.arg)
       } else {
         setSearchInputs(prev=>({...prev, 'start_date': null}))
       }
@@ -131,7 +139,8 @@ const ChatModal = ({open, onClose, handleSubmit, getCompletedObject, fieldErrors
     } else if(setter==="setReturnDate") {
       const res = verifyDate("return_date", arg)
       if(res.msg===200) {
-        setSearchInputs(prev=>({...prev, 'return_date': res.arg}))
+        // setSearchInputs(prev=>({...prev, 'return_date': res.arg}))
+        handleReturnDateChange(res.arg)
       } else {
         setSearchInputs(prev=>({...prev, 'return_date': null}))
       }
