@@ -110,6 +110,26 @@ const FlightResultsPage = () => {
     return objStr
   }
 
+  function getDisplayedFlightsObject() {
+
+    const objStr = JSON.stringify(displayedFlights.map(flight=>{
+      const hours = Math.floor(flight.total_duration / 60)
+      const minutes = flight.total_duration % 60
+      const reducedObj = {
+        "_id":flight._id,
+        "totalFlightCost":flight.totalFlightCost,
+        "airline":flight.airline,
+        "start_time": flight.start_time,
+        "end_time": flight.end_time,
+        "num_stops": flight['num_stops']===0 ? "Nonstop" : `${flight['num_stops']} stop`,
+        "duration": `${hours} hours ${minutes} min`,
+      }
+      return reducedObj
+    }))
+
+    return objStr
+  }
+
   const filterOptions = useMemo(() => {
     
     if (results.flightsTo && !isReturnFlightPage) {
@@ -198,7 +218,13 @@ const FlightResultsPage = () => {
       setSearchInputs(prev => ({ ...prev, return_date: dateStr }));
     };
 
-  function handleFlightSelection(flightId, airline, airlineLogoUrl) {
+
+  async function handleFlightSelectionIdOnly(flightId) {
+    const targetFlight = displayedFlights.filter(flight=>flight._id === flightId)[0]
+    await handleFlightSelection(targetFlight._id, targetFlight.airline, targetFlight.airline_logo)
+  }
+
+  async function handleFlightSelection(flightId, airline, airlineLogoUrl) {
     if(searchInputs.trip_type==="Round-trip" && !isReturnFlightPage) {
       setBookingDetails(prev=>({...prev, "departing":flightId}))
       setDepartFlight(
@@ -431,9 +457,11 @@ const FlightResultsPage = () => {
       setLayoverDuration = {setLayoverDuration}
       setTotalDuration = {setTotalDuration}
       handleSort={handleSort}
+      handleFlightSelectionIdOnly={handleFlightSelectionIdOnly}
       setIsLoading={setIsLoading}
       getCompletedObject={getCompletedObject}
       getFilterObject={getFilterObject}
+      getDisplayedFlightsObject={getDisplayedFlightsObject}
       resetFilters={resetFilters}/>
     </Box>
   );

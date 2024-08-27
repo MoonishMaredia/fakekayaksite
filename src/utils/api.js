@@ -90,6 +90,24 @@ export async function makeFilterRequest(userMessage, filterObj) {
 }
 
 
+export async function makeBookingRequest(userMessage, displayedFlights) {
+
+  const postInput = { 
+    userMessage,
+    displayedFlights: JSON.stringify(displayedFlights)
+  };
+
+  try {
+    const data = await axios.post(process.env.REACT_APP_BACKEND_URL + "/makeBookingRequest", postInput)
+    .then(res => res.data);
+    return data.bookResponse
+  } catch (error) {
+    console.error("Error making API call:", error);
+    return {"Error": error}
+  }
+}
+
+
 export async function getFlightResults(originCode, destinationCode, tripType, startDate, returnDate) {
 
   const postInput = { 

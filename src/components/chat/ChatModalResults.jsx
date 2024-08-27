@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import ChatComponent from './ChatComponent';
-import {makeTriageRequests, makeUpdateRequest, makeSortRequest, makeFilterRequest} from '../../utils/api';
+import {makeTriageRequests, makeUpdateRequest, makeSortRequest, makeFilterRequest, makeBookingRequest} from '../../utils/api';
 import { getLandingResultsChatHTML, getLandingResultsChatMessage, verifyAirportCode, verifyDate, verifyMinMaxType } from '../../utils/other';
 import { useInput } from '../InputContext'
 import { useMutex } from '../MutexContext'
@@ -18,9 +18,11 @@ const ChatModal = ({open, onClose,
   setLayoverDuration,
   setTotalDuration,
   handleSort,
+  handleFlightSelectionIdOnly,
   setIsLoading,
   getCompletedObject,
   getFilterObject,
+  getDisplayedFlightsObject,
   resetFilters}) => {
 
   const {searchInputs, setSearchInputs} = useInput({});
@@ -307,6 +309,31 @@ const ChatModal = ({open, onClose,
     });
   }
 
+  function updateBooking(flightId) {
+    return new Promise((resolve) => {
+      handleFlightSelectionIdOnly(flightId)
+      resolve();
+    });
+  }
+
+  async function runBookFunction(userMessage) {
+    const bookResponse = await makeBookingRequest(userMessage, getDisplayedFlightsObject())
+    console.log(bookResponse)
+    const cleanedResponse = bookResponse.replace(/\[|\]/g, '');
+    const array = cleanedResponse.trim();
+    console.log(array.length)
+
+    if(array.length===0) {
+      setMessages((prev) => [{sender: 'ai', text: "Your booking request couldn't be completed. Can you be more specific about the flight you are booking (e.g. you can specify combination of cost, timing, airline or where it shows in the list? " }, ...prev]);
+      return {"msg":400};
+    }
+  
+    return new Promise((resolve) => {
+      updateBooking(array);
+      resolve();
+    });
+  }
+
   async function commandCenter(triageResponse, userMessage) {
     setIsLoading(true)
     try {
@@ -316,7 +343,7 @@ const ChatModal = ({open, onClose,
       }
       const cleanedResponse = triageResponse.replace(/\[|\]/g, '');
       const actions = cleanedResponse.split(',').map(str => str.trim());
-      
+
       let returnMsg = null
       for (const action of actions) {
         await mutex.acquire();
@@ -333,7 +360,8 @@ const ChatModal = ({open, onClose,
 
           } else if (action === "sort") {
             await runSortFunction(userMessage);
-
+          } else if (action === "book") {
+            await runBookFunction(userMessage)
           }
         } finally {
           mutex.release();
