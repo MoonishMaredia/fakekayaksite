@@ -187,7 +187,7 @@ const FilterComponent = ({
       setIsStopsFilter(false)
     }
 
-    if (priceFilter !== filterOptions.maxPrice) {
+    if (priceFilter < filterOptions.maxPrice) {
       newFlights = newFlights.filter(flight => flight.totalFlightCost <= priceFilter);
       setIsPriceFilter(true)
     } else {
@@ -237,7 +237,7 @@ const FilterComponent = ({
 
     setDisplayedFlights(newFlights)
 
-  }, [airlinesFilter, stopsFilter, priceFilter, timeFilter, totalDuration, layoverDuration, results])  
+  }, [airlinesFilter, stopsFilter, priceFilter, timeFilter, totalDuration, layoverDuration, displayedFlights])  
 
   return (
     <div className="filter-component">

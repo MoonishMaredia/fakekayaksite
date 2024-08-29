@@ -10,10 +10,11 @@ export function getLandingChatMessage() {
 
 
 export function getLandingResultsChatMessage() {
-    const message = `Hello! I’m here to help you finalize your booking. I can assist you in 3 ways:<br>
+    const message = `Hello! I’m here to help you finalize your booking. I can assist you in 4 ways:<br>
     1) Help update your flight request details (e.g. update my return date to Oct 1, 2024)
     2) Filter your flight resuls (e.g. only show non-stop flights)
     3) Sort your flight results (e.g. sort results based on total travel time)
+    4) Confirm or book a specific flight (e.g. book the 1st flight in the list, book the 9:35am American airlines flight)
     You can also ask me to perform a combination of these actions (e.g. update my return airport to JFK and only show non-stop flights).`
     
     return message
@@ -28,11 +29,11 @@ export function getLandingChatHTML() {
 
 
 export function getLandingResultsChatHTML() {
-    const htmlMessage = `<p>Hello! I’m here to help you finalize your booking. I can assist you in 3 ways:<br><br>
+    const htmlMessage = `<p>Hello! I’m here to help you finalize your booking. I can assist you in 4 ways:<br><br>
     1) Help update your flight request details (e.g. update my return date to Oct 1, 2024)<br><br>
-    2) Sort your flight results (e.g. sort results based on total travel time)<br><br>
-    3) Filter your flight resuls (e.g. only show non-stop flights)<br><br>
-    
+    2) Filter your flight results (e.g. only show non-stop flights)<br><br>
+    3) Sort your flight results (e.g. sort results based on total travel time)<br><br>
+    4) Confirm or book a specific flight (e.g. book the 1st flight in the list, book the 9:35am American airlines flight)<br><br>
     You can also ask me to perform a combination of these actions (e.g. update my return airport to JFK and only show non-stop flights). 
     </p>`
     

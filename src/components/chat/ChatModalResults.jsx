@@ -42,7 +42,7 @@ const ChatModal = ({open, onClose,
   }
 
   async function runSetFunctions(setter, arg) {
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
       switch (setter) {
         case "setTripType":
           if (!['Round-trip', 'One-way'].includes(arg)) {
@@ -56,7 +56,7 @@ const ChatModal = ({open, onClose,
         case "setStartDate":
           const startDateRes = verifyDate("start_date", arg, searchInputs.start_date);
           if (startDateRes.msg === 200) {
-            handleStartDateChange(arg, true);
+            await handleStartDateChange(arg, true);
             resolve({ "msg": 200 });
           } else {
             resolve({ "msg": 400, "error": startDateRes.error });
@@ -64,9 +64,9 @@ const ChatModal = ({open, onClose,
           break;
   
         case "setReturnDate":
-          const returnDateRes = verifyDate("return_date", arg, searchInputs.start_date);
+          const returnDateRes = verifyDate("return_date", arg, searchInputs.return_date);
           if (returnDateRes.msg === 200) {
-            handleReturnDateChange(arg, true);
+            await handleReturnDateChange(arg, true);
             resolve({ "msg": 200 });
           } else {
             resolve({ "msg": 400, "error": returnDateRes.error });
@@ -76,7 +76,7 @@ const ChatModal = ({open, onClose,
         case "setPassengers":
           const passengersRes = verifyMinMaxType("num_passengers", arg);
           if (passengersRes.msg === 200) {
-            setSearchInputs(prev => ({ ...prev, 'num_passengers': parseInt(passengersRes.arg) }));
+            await setSearchInputs(prev => ({ ...prev, 'num_passengers': parseInt(passengersRes.arg) }));
             resolve({ "msg": 200 });
           } else {
             resolve({ "msg": 400, "error": passengersRes.error });
@@ -87,7 +87,7 @@ const ChatModal = ({open, onClose,
           if (!['Economy', 'Business'].includes(arg)) {
             resolve({ "msg": 400, "error": "Invalid ticket type. It should be either Economy or Business" });
           } else {
-            setSearchInputs(prev => ({ ...prev, 'seat_type': arg }));
+            await setSearchInputs(prev => ({ ...prev, 'seat_type': arg }));
             resolve({ "msg": 200 });
           }
           break;
@@ -95,7 +95,7 @@ const ChatModal = ({open, onClose,
         case "setCarryOnBags":
           const carryOnRes = verifyMinMaxType("num_carryOn", arg);
           if (carryOnRes.msg === 200) {
-            setSearchInputs(prev => ({ ...prev, 'num_carryOn': parseInt(carryOnRes.arg) }));
+            await setSearchInputs(prev => ({ ...prev, 'num_carryOn': parseInt(carryOnRes.arg) }));
             resolve({ "msg": 200 });
           } else {
             resolve({ "msg": 400, "error": carryOnRes.error });
@@ -105,7 +105,7 @@ const ChatModal = ({open, onClose,
         case "setCheckedBags":
           const checkedRes = verifyMinMaxType("num_checked", arg);
           if (checkedRes.msg === 200) {
-            setSearchInputs(prev => ({ ...prev, 'num_checked': parseInt(checkedRes.arg) }));
+            await setSearchInputs(prev => ({ ...prev, 'num_checked': parseInt(checkedRes.arg) }));
             resolve({ "msg": 200 });
           } else {
             resolve({ "msg": 400, "error": checkedRes.error });
@@ -153,7 +153,6 @@ const ChatModal = ({open, onClose,
   }
 
   async function runUpdateFunction(userMessage) {
-    // const updateResponse = "[setFlyingFrom, IAH, setFlyingTo, PHX, setStartDate, 2024-11-22, setPassengers, 3, setCheckedBags, 2]"
     const updateResponse = await makeUpdateRequest(userMessage, getCompletedObject())
     console.log(updateResponse)
     const cleanedResponse = updateResponse.replace(/\[|\]/g, '');
@@ -221,17 +220,19 @@ const ChatModal = ({open, onClose,
     return filters;
   }
 
-    async function runFilterFunction(userMessage) {
-      const filterResponse = await makeFilterRequest(userMessage, getFilterObject());
-      console.log(filterResponse);
-      const finalFilters = formatFilterResponse(filterResponse);
-      console.log(finalFilters);
-    
-      const filterPromises = Object.entries(finalFilters).map(([key, value]) =>
-        updateFilter(key, value)
-      );
-      await Promise.all(filterPromises);
-    }
+
+  async function runFilterFunction(userMessage) {
+    const filterResponse = await makeFilterRequest(userMessage, getFilterObject());
+    console.log("Filter Response:", filterResponse);
+    const finalFilters = formatFilterResponse(filterResponse);
+    console.log("Formatted Filters:", finalFilters);
+
+    const filterPromises = Object.entries(finalFilters).map(([key, value]) =>
+      updateFilter(key, value)
+    );
+    await Promise.all(filterPromises);
+    console.log("All filters applied");
+  }
 
   async function updateFilter(filterItem, filterValue) {
     return new Promise(async (resolve) => {
@@ -240,31 +241,31 @@ const ChatModal = ({open, onClose,
           await clearAllFilters();
           resolve({"msg":200})
         case "stops":
-          setStopsFilter(parseInt(filterValue));
+          await setStopsFilter(parseInt(filterValue));
           resolve({ "msg": 200 });
           break;
         case "airlines":
-          setAirlinesFilter(filterValue);
+          await setAirlinesFilter(filterValue);
           resolve({ "msg": 200 });
           break;
         case "price":
-          setPriceFilter(parseInt(filterValue));
+          await setPriceFilter(parseInt(filterValue));
           resolve({ "msg": 200 });
           break;
         case "departureTime":
-          setTimeFilter(prev => ({...prev, "departure": filterValue.reduce((acc, curr) => [...acc, parseInt(curr)], [])}));
+          await setTimeFilter(prev => ({...prev, "departure": filterValue.reduce((acc, curr) => [...acc, Number(curr)], [])}));
           resolve({ "msg": 200 });
           break;
         case "arrivalTime":
-          setTimeFilter(prev => ({...prev, "arrival": filterValue.reduce((acc, curr) => [...acc, parseInt(curr)], [])}));
+          await setTimeFilter(prev => ({...prev, "arrival": filterValue.reduce((acc, curr) => [...acc, Number(curr)], [])}));
           resolve({ "msg": 200 });
           break;
         case "layoverDuration":
-          setLayoverDuration(parseInt(filterValue));
+          await setLayoverDuration(parseInt(filterValue));
           resolve({ "msg": 200 });
           break;
         case "totalDuration":
-          setTotalDuration(filterValue.reduce((acc, curr) => [...acc, parseInt(curr)], []));
+          setTotalDuration(filterValue.reduce((acc, curr) => [...acc, Number(curr)], []));
           resolve({ "msg": 200 });
           break;
         default:
@@ -293,20 +294,19 @@ const ChatModal = ({open, onClose,
   }
 
   async function runSortFunction(userMessage) {
-    const sortResponse = await makeSortRequest(userMessage)
-    const cleanedResponse = sortResponse.replace(/\[|\]/g, '');
-    const array = cleanedResponse.trim();
-    console.log(array)
+    const sortResponse = await makeSortRequest(userMessage);
+    console.log("Sort Response:", sortResponse);
+    const cleanedResponse = sortResponse.replace(/\[|\]/g, '').trim();
+    console.log("Cleaned Sort Response:", cleanedResponse);
 
-    if(array[0] === "") {
+    if(cleanedResponse === "") {
       setMessages((prev) => [{sender: 'ai', text: "Your sort request couldn't be completed. Can you restate your request more clearly?" }, ...prev]);
       return {"msg":400};
     }
-  
-    return new Promise((resolve) => {
-      updateSort(array);
-      resolve();
-    });
+
+    await updateSort(cleanedResponse);
+    console.log("Sort applied");
+    return {"msg":200};
   }
 
   function updateBooking(flightId) {
@@ -334,8 +334,10 @@ const ChatModal = ({open, onClose,
     });
   }
 
+
+
   async function commandCenter(triageResponse, userMessage) {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       if (triageResponse === "[]") {
         setMessages((prev) => [{sender: 'ai', text: "I'm sorry I didn't understand your last message. Can you be more specific?" }, ...prev]);
@@ -343,49 +345,55 @@ const ChatModal = ({open, onClose,
       }
       const cleanedResponse = triageResponse.replace(/\[|\]/g, '');
       const actions = cleanedResponse.split(',').map(str => str.trim());
+      console.log("Actions to perform:", actions);
 
-      let returnMsg = null
       for (const action of actions) {
-        await mutex.acquire();
+        const release = await mutex();
         try {
-          if (action === "update") {
-            returnMsg = await runUpdateFunction(userMessage);
-            if(returnMsg.msg===400) {
-              return
-            } else {
-              await new Promise(resolve => setTimeout(resolve, 500));
-            }
-          } else if (action === "filter") {
-            await runFilterFunction(userMessage);
-
-          } else if (action === "sort") {
-            await runSortFunction(userMessage);
-          } else if (action === "book") {
-            await runBookFunction(userMessage)
+          switch (action) {
+            case "update":
+              const returnMsg = await runUpdateFunction(userMessage);
+              if (returnMsg.msg === 400) {
+               return
+              } else {
+                await new Promise(resolve => setTimeout(resolve, 500));
+              }
+              break;
+            case "filter":
+              await runFilterFunction(userMessage);
+              break;
+            case "sort":
+              await runSortFunction(userMessage);
+              break;
+            case "book":
+              await runBookFunction(userMessage);
+              break;
           }
         } finally {
-          mutex.release();
+          release();
         }
       }
+      console.log("All actions completed");
     } catch (error) {
       console.error("Error parsing or processing response:", error);
-      mutex.release();
+    } finally {
+      setIsLoading(false);
+      setIsDisabled(false);
     }
   }
 
   const sendMessage = async (userMessage) => {
     try {
-      setIsDisabled(true)
+      setIsDisabled(true);
       setMessages((prev) => [{ sender: 'user', text: userMessage }, ...prev]);
-      // const prevAIMessage = aiMessages ? aiMessages[aiMessages.length - 1] : ""
-      const triageResponse = await makeTriageRequests(userMessage)
-      console.log(triageResponse)
-      await commandCenter(triageResponse, userMessage)
+      const triageResponse = await makeTriageRequests(userMessage);
+      console.log("Triage Response:", triageResponse);
+      await commandCenter(triageResponse, userMessage);
     } catch (error) {
       console.error("Error fetching response:", error);
     } finally {
-      setIsLoading(false)
-      setIsDisabled(false)
+      setIsLoading(false);
+      setIsDisabled(false);
     }
   };
 

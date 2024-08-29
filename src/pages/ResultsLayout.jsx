@@ -201,7 +201,7 @@ const FlightResultsPage = () => {
       setSearchInputs(prev => ({ ...prev, start_date: dateStr }));
       if(searchInputs.return_date) {
         if(newDate > new Date(searchInputs.return_date)) {
-          handleReturnDateChange(addDays(date, 2))
+          await handleReturnDateChange(addDays(date, 2))
         }
       }
     };

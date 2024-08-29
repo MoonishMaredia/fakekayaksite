@@ -1,27 +1,30 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useRef } from 'react';
 
 const MutexContext = createContext();
 
 export function useMutex() {
-    return useContext(MutexContext);
-  }
+  return useContext(MutexContext);
+}
 
 export const MutexProvider = ({ children }) => {
-  const [locked, setLocked] = useState(false);
+  const mutexRef = useRef(Promise.resolve(() => {}));
 
   const acquire = async () => {
-    while (locked) {
-      await new Promise(resolve => setTimeout(resolve, 10)); // Wait a bit
-    }
-    setLocked(true);
-  };
+    const unlock = await mutexRef.current;
 
-  const release = () => {
-    setLocked(false);
+    let release;
+    const newLock = new Promise(resolve => {
+      release = () => resolve(() => {});
+    });
+
+    mutexRef.current = newLock;
+    unlock();
+
+    return release;
   };
 
   return (
-    <MutexContext.Provider value={{ acquire, release }}>
+    <MutexContext.Provider value={acquire}>
       {children}
     </MutexContext.Provider>
   );
