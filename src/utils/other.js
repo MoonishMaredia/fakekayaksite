@@ -3,7 +3,8 @@ import {airportCodes} from '../busyairportcodes'
 export function getLandingChatMessage() {
 
     const message = `Hello! I’m here to help you find the perfect flight for your trip. To get started, 
-    could you please let me know if your trip is a round-trip or one-way?`
+    could you please let me know if your trip is a round-trip or one-way? Or if you know what you want you can
+    provide a more complete request all at once?`
     
     return message
 }
@@ -21,8 +22,9 @@ export function getLandingResultsChatMessage() {
 }
 
 export function getLandingChatHTML() {
-    const htmlMessage = `<p>Hello! I’m here to help you find the perfect flight for your trip. 
-    To get started, could you please let me know if your trip is a round-trip or one-way?</p>`
+    const htmlMessage = `<p>Hello! I’m here to help you find the perfect flight for your trip.<br><br>
+    To get started, could you please let me know if your trip is a round-trip or one-way?</p><br>
+    Or if you know what you want you can provide a more complete request all at once?`
     
     return htmlMessage
 }
