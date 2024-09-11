@@ -361,6 +361,7 @@ const ChatModal = ({open, onClose,
               break;
             case "filter":
               await runFilterFunction(userMessage);
+              await new Promise(resolve => setTimeout(resolve, 150));
               break;
             case "sort":
               await runSortFunction(userMessage);
