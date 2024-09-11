@@ -109,7 +109,7 @@ export default function ChatComponent({open, onClose, messages, isDisabled, send
                     fullWidth
                     variant="outlined"
                     disabled={isDisabled}
-                    placeholder="Message GPT"
+                    placeholder="Chat with AI Agent"
                     onKeyPress={(e) => {
                       if (e.key === 'Enter') {
                         sendMessage(e.target.value);
