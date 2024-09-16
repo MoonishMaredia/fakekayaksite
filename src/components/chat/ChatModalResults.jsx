@@ -220,18 +220,14 @@ const ChatModal = ({open, onClose,
     return filters;
   }
 
-
   async function runFilterFunction(userMessage) {
     const filterResponse = await makeFilterRequest(userMessage, getFilterObject());
-    console.log("Filter Response:", filterResponse);
     const finalFilters = formatFilterResponse(filterResponse);
-    console.log("Formatted Filters:", finalFilters);
 
     const filterPromises = Object.entries(finalFilters).map(([key, value]) =>
       updateFilter(key, value)
     );
     await Promise.all(filterPromises);
-    console.log("All filters applied");
   }
 
   async function updateFilter(filterItem, filterValue) {
@@ -295,9 +291,7 @@ const ChatModal = ({open, onClose,
 
   async function runSortFunction(userMessage) {
     const sortResponse = await makeSortRequest(userMessage);
-    console.log("Sort Response:", sortResponse);
     const cleanedResponse = sortResponse.replace(/\[|\]/g, '').trim();
-    console.log("Cleaned Sort Response:", cleanedResponse);
 
     if(cleanedResponse === "") {
       setMessages((prev) => [{sender: 'ai', text: "Your sort request couldn't be completed. Can you restate your request more clearly?" }, ...prev]);
@@ -305,7 +299,6 @@ const ChatModal = ({open, onClose,
     }
 
     await updateSort(cleanedResponse);
-    console.log("Sort applied");
     return {"msg":200};
   }
 
@@ -318,10 +311,8 @@ const ChatModal = ({open, onClose,
 
   async function runBookFunction(userMessage) {
     const bookResponse = await makeBookingRequest(userMessage, getDisplayedFlightsObject())
-    console.log(bookResponse)
     const cleanedResponse = bookResponse.replace(/\[|\]/g, '');
     const array = cleanedResponse.trim();
-    console.log(array.length)
 
     if(array.length===0) {
       setMessages((prev) => [{sender: 'ai', text: "Your booking request couldn't be completed. Can you be more specific about the flight you are booking (e.g. you can specify combination of cost, timing, airline or where it shows in the list? " }, ...prev]);
@@ -334,8 +325,6 @@ const ChatModal = ({open, onClose,
     });
   }
 
-
-
   async function commandCenter(triageResponse, userMessage) {
     setIsLoading(true);
     try {
@@ -345,7 +334,6 @@ const ChatModal = ({open, onClose,
       }
       const cleanedResponse = triageResponse.replace(/\[|\]/g, '');
       const actions = cleanedResponse.split(',').map(str => str.trim());
-      console.log("Actions to perform:", actions);
 
       for (const action of actions) {
         const release = await mutex();
@@ -374,7 +362,6 @@ const ChatModal = ({open, onClose,
           release();
         }
       }
-      console.log("All actions completed");
     } catch (error) {
       console.error("Error parsing or processing response:", error);
     } finally {

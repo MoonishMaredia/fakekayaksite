@@ -3,6 +3,7 @@ import { Box, Typography, IconButton } from '@mui/material';
 import LuggageIcon from '@mui/icons-material/Luggage';
 import {useInput} from '../InputContext.js'
 
+// GUI component that allows user to add / remove checked or carry on bag
 const BagSelector = () => {
 
   const {searchInputs, setSearchInputs} = useInput({})

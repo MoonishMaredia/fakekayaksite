@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, Typography, IconButton, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import {useInput} from '../InputContext.js'
 
+// GUI component that allows user to add / remove passengers or change seat type
 const PassengerSelector = () => {
 
   const {searchInputs, setSearchInputs} = useInput({})

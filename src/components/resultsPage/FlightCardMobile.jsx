@@ -13,7 +13,7 @@ import {useInput} from '../InputContext.js'
 
 const options = { year: 'numeric', month: 'numeric', day: 'numeric', timeZone: 'UTC' };
 
-
+//flight card specs for mobile. Displays less information given less space
 export default function FlightCardMobile({ 
   flightData, expanded, 
   handleExpandClick, memoizedStartTime, 

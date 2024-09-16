@@ -6,11 +6,13 @@ import {useResults} from '../components/ResultsContext.js'
 import {useBooking} from '../components/BookingContext.js'
 
 export default function BookingLayout() {
-
+    
+    // import context variables
     const {results, setResults} = useResults({});
     const {searchInputs, setSearchInputs} = useInput({});
     const {bookingDetails, setBookingDetails} = useBooking({});
     const theme = useTheme();
+    // declare state variables
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const departFlight = results.flightsTo.filter(flight=>flight['_id']===bookingDetails.departing)[0]
     const returnFlight = bookingDetails.returning ? results.flightsReturn.filter(flight=>flight['_id']===bookingDetails.returning)[0] : null

@@ -5,6 +5,7 @@ import { airportCodes } from '../../busyairportcodes.js';
 import { airportCodesArray } from '../../busyairportcodes.js';
 import { useInput } from '../InputContext.js'
 
+// GUI component that allows user to input airport by searching airport name, city or code
 const AirportAutocomplete = ({ placeholderText, takeOff, handleAirportChange }) => {
   const { searchInputs, setSearchInputs } = useInput({})
   const [inputValue, setInputValue] = useState('')

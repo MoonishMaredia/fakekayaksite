@@ -16,6 +16,7 @@ import ChatModal from '../components/chat/ChatModalResults.jsx'
 import moment from 'moment';
 import initializeFilters from '../components/filters/initializeFilters';
 
+// Scalar to apply for different seat types
 const seatScalar = {
   Economy: 1,
   Business: 3,
@@ -38,6 +39,7 @@ const checkedFees = {
   Spirit: [55, 80, 90],
 };
 
+
 const getCarryFees = (airline, numBags) => {
   return carryOnFees[airline]?.[0] * numBags || 0;
 };
@@ -48,6 +50,7 @@ const getCheckedFees = (airline, numBags) => {
 
 const FlightResultsPage = () => {
   
+  //import context variables
   const { searchInputs, setSearchInputs } = useInput({});
   const { results, setResults } = useResults({});
   const { bookingDetails, setBookingDetails } = useBooking({});
@@ -56,6 +59,7 @@ const FlightResultsPage = () => {
   const [isLoading, setIsLoading] = useState(false)
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   const [displayedFlights, setDisplayedFlights] = useState(results['data']);
   const [sortMethod, setSortMethod] = useState("Lowest Total Price");
 
@@ -63,6 +67,7 @@ const FlightResultsPage = () => {
   const [departFlight, setDepartFlight] = useState({})
   const [returnFlight, setReturnFlight] = useState({})
 
+  //declare filters
   const [airlinesFilter, setAirlinesFilter] = useState({});
   const [priceFilter, setPriceFilter] = useState(0);
   const [stopsFilter, setStopsFilter] = useState(100);
@@ -70,6 +75,7 @@ const FlightResultsPage = () => {
   const [layoverDuration, setLayoverDuration] = useState([0,0]);
   const [totalDuration, setTotalDuration] = useState([0, 0]);
 
+  //state variable to track which  filters are active
   const [isStopsFilter, setIsStopsFilter] = useState(false)
   const [isAirlinesFilter, setIsAirlinesFilter] = useState(false)
   const [isPriceFilter, setIsPriceFilter] = useState(false)
@@ -77,10 +83,12 @@ const FlightResultsPage = () => {
   const [isConnectingAirportsFilter, setIsConnectingAirportsFilter] = useState(false)
   const [isDurationFilter, setIsDurationFilter] = useState(false)
 
+  //variables to track / interact with chat module 
   const [isChatOpen, setIsChatOpen] = useState(false);
   const handleChatOpen = () => setIsChatOpen(true);
   const handleChatClose = () => setIsChatOpen(false);
 
+  //generate object to pass to backend to provide context for current flight search
   function getCompletedObject() {
     const objStr = {
       "trip_type": searchInputs.trip_type,
@@ -97,6 +105,7 @@ const FlightResultsPage = () => {
     return objStr
   }
 
+  //generate object to pass to backend to provide context for active filters and values
   function getFilterObject() {
     const objStr = {
     "stops": stopsFilter,
@@ -110,6 +119,7 @@ const FlightResultsPage = () => {
     return objStr
   }
 
+  //generate object to pass to backend to provide context on currently displayed flights
   function getDisplayedFlightsObject() {
 
     const objStr = JSON.stringify(displayedFlights.map(flight=>{
@@ -130,6 +140,7 @@ const FlightResultsPage = () => {
     return objStr
   }
 
+  //initialize filter values based on results. Update if search inputs change
   const filterOptions = useMemo(() => {
     
     if (results.flightsTo && !isReturnFlightPage) {
@@ -145,6 +156,7 @@ const FlightResultsPage = () => {
     setDisplayedFlights(sortFlights(displayedFlights, value))
   }
 
+  //handler to clear all filters if appropriate message is received from user
   async function resetFilters() {
     setIsStopsFilter(false)
     setAirlinesFilter(false)
@@ -154,6 +166,7 @@ const FlightResultsPage = () => {
     setIsDurationFilter(false)
   }
 
+  //handler to process single airport change request
   async function handleSingleAirportChange(takeOff, newAirport) {
     let resultsData = {}
     if(takeOff) {
@@ -167,6 +180,7 @@ const FlightResultsPage = () => {
     setSearchInputs(prev => ({...prev, [takeOff ? 'flying_from' : 'flying_to']: newAirport}))
   }
 
+  //handler to process multiple airport changes
   async function handleMultipleAirportChange(newOrigAirport, newDestAirport) {
     let resultsData = {}
       resultsData = await getFlightResults(newOrigAirport, newDestAirport, 
